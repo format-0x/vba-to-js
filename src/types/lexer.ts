@@ -19,3 +19,7 @@ export type Pos = [number, number];
 export type Token = [string, string, TokenLocation];
 
 export type TokenLocationRange = [number, number];
+
+export enum TokenTypes {
+  Identifier = 'IDENTIFIER',
+}
