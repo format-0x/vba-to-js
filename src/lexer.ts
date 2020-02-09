@@ -40,6 +40,10 @@ export default class Lexer {
     return id.length;
   }
 
+  literalToken(): number {
+    return 1;
+  }
+
   makeLocation(offset: number, length: number): TokenLocation {
     const [first_column, first_line] = this.getPos(offset);
     const [last_column, last_line] = this.getPos(offset + length - 1);
@@ -74,7 +78,7 @@ export default class Lexer {
     this.lines = code.split(/(?<=\n)/);
 
     while ((this.chunk = code.slice(this.chunkOffset))) {
-      const consumed = this.identifierToken() || this.whitespaceToken() || this.newlineToken();
+      const consumed = this.identifierToken() || this.newlineToken() || this.whitespaceToken() || this.literalToken();
 
       this.chunkOffset += consumed;
     }
