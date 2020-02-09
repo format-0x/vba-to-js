@@ -21,7 +21,7 @@ export default class Lexer {
       lineIndex++;
     }
 
-    throw new Error(`Cannot find char at index: ${offset}`);
+    return [index, lineIndex];
   }
 
   identifierToken(): number {
@@ -47,12 +47,15 @@ export default class Lexer {
   makeLocation(offset: number, length: number): TokenLocation {
     const [first_column, first_line] = this.getPos(offset);
     const [last_column, last_line] = this.getPos(offset + length - 1);
+    const [last_column_exclusive, last_line_exclusive] = this.getPos(offset + length);
 
     return {
       first_column,
       first_line,
       last_column,
+      last_column_exclusive,
       last_line,
+      last_line_exclusive,
       range: [offset, offset + length - 1],
     };
   }

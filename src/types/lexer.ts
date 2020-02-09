@@ -4,7 +4,9 @@ export interface TokenLocation {
   first_column: number;
   first_line: number;
   last_column: number;
+  last_column_exclusive: number;
   last_line: number;
+  last_line_exclusive: number;
   range: TokenLocationRange;
 }
 

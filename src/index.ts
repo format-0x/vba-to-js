@@ -6,7 +6,7 @@ const Parser = require('jison').Parser;
 const parser = new Parser({});
 
 parser.lexer = {
-  lex: function () {
+  lex: function (): string {
     let tag: string;
     const token = parser.tokens[this.pos++];
 
