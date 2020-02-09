@@ -1,8 +1,10 @@
 import { SourceLocation } from '@babel/types';
-import { jisonLocationToBabelLocation } from './util/helpers';
+import { jisonLocationToBabelLocation, addToPrototype } from './util';
 import { TokenLocation } from './types';
 
 abstract class Base {
+  @addToPrototype<Base[]>([])
+  public children: Base[] = [];
   abstract location: TokenLocation;
 
   get type(): string {
@@ -13,3 +15,5 @@ abstract class Base {
     return jisonLocationToBabelLocation(this.location);
   }
 }
+
+Base.prototype.children = [];
