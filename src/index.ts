@@ -1,1 +1,1 @@
-const jison = require('jison');
+import Lexer from './lexer';
