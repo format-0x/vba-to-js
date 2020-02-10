@@ -1,9 +1,16 @@
 import Lexer from './lexer';
+import bnf from './grammar';
+import * as nodes from './nodes';
 import { Token } from './types';
 
 const Parser = require('jison').Parser;
 
-const parser = new Parser({});
+const parser = new Parser({
+  bnf,
+  startSymbol: 'Literal',
+});
+
+parser.yy = nodes;
 
 parser.lexer = {
   lex: function (): string {

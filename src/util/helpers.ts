@@ -16,3 +16,6 @@ export const jisonLocationToBabelLocation = ({
     column: last_column_exclusive,
   },
 });
+
+export const YES = (): boolean => true;
+export const NO = (): boolean => false;
