@@ -1,4 +1,4 @@
-import { LexerOptions, Pos, Token, TokenLocation, TokenOptions, TokenTypes } from './types';
+import { LexerOptions, Pos, Token, TokenLocation, TokenOptions, TokenType } from './types';
 import { IDENTIFIER, NEWLINE, WHITESPACE } from './patterns';
 
 export default class Lexer {
@@ -33,7 +33,7 @@ export default class Lexer {
 
     const [id] = match;
 
-    const token = this.makeToken(TokenTypes.Identifier, id);
+    const token = this.makeToken(TokenType.Identifier, id);
 
     this.tokens.push(token);
 

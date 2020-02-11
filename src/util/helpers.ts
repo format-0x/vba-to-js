@@ -1,5 +1,6 @@
 import { SourceLocation } from '@babel/types';
 import { TokenLocation } from '../types';
+import { CodeFragment } from '../nodes';
 
 export const jisonLocationToBabelLocation = ({
   first_column,
@@ -16,6 +17,10 @@ export const jisonLocationToBabelLocation = ({
     column: last_column_exclusive,
   },
 });
+
+export const fragmentsToString = (fragments: CodeFragment[], separator: string = ''): string => {
+  return fragments.join(separator);
+};
 
 export const YES = (): boolean => true;
 export const NO = (): boolean => false;

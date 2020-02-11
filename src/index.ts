@@ -36,3 +36,9 @@ parser.lexer = {
 };
 
 const lexer = new Lexer();
+
+const compile = (code: string, options: object) => {
+  options = { ...options };
+  const tokens = lexer.tokenize(code, options);
+  const nodes = parser.parse(tokens);
+};

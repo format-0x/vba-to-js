@@ -20,6 +20,6 @@ export type Token = [string, string, TokenLocation];
 
 export type TokenLocationRange = [number, number];
 
-export enum TokenTypes {
+export enum TokenType {
   Identifier = 'IDENTIFIER',
 }
