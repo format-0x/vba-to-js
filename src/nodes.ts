@@ -1,6 +1,43 @@
 import { SourceLocation } from '@babel/types';
-import { jisonLocationToBabelLocation, addToPrototype, fragmentsToString, NO, YES } from './util';
-import { BlockType, TokenLocation } from './types';
+import { addToPrototype, fragmentsToString, jisonLocationToBabelLocation, NO, YES } from './util';
+import {
+  BlockType, JS_FORBIDDEN, TokenLocation, Variable, VariableKind, VariablePosition, VariableType
+} from './types';
+
+export class Scope {
+  private variables: Variable[] = [];
+  private positions: VariablePosition = {};
+
+  constructor(
+    private parent: Scope,
+    private expressions: Block,
+    private method: Code,
+    private referencedVariables: object = {},
+  ) {}
+
+  add(
+    name: string,
+    value: any = null,
+    kind: VariableKind = 'Variable',
+    type: VariableType = 'Variant',
+  ): void {
+    if (Object.prototype.hasOwnProperty.call(this.positions, name)) {
+      // TODO: handle type reassignment
+      this.variables[this.positions[name]].value = value;
+    } else {
+      this.positions[name] = this.variables.push({ name, type, kind, value });
+    }
+  }
+
+  check(name: string): boolean {
+    // TODO: need parent lookup?
+    return !!this.find(name);
+  }
+
+  find(name: string): Variable | undefined {
+    return this.variables.find(({ name: variableName }) => name === variableName);
+  }
+}
 
 export class CodeFragment {
   constructor(private code: Function | string) {}
@@ -158,20 +195,80 @@ export class Root extends Base {
 
 Root.prototype.children = ['body'];
 
-export class Literal<T> extends Base {
-  private value: T;
+export class Value extends Base {
+
+}
+
+// TODO: add proper types
+export class Literal<T extends string> extends Base {
+  public value: T;
 
   constructor(value: T) {
     super();
     this.value = value;
   }
+
+  compileNode(options: object): CodeFragment[] {
+    return [this.makeCode(this.value)];
+  }
+
+  get props(): object {
+    return { value: this.value };
+  }
 }
+
+export class Identifier extends Literal<string> {
+  // TODO: add proper types
+  eachName(iterator: Function) {
+    return iterator(this);
+  }
+
+  get props(): object {
+    return { name: this.value };
+  }
+}
+
+export class Parameter extends Base {
+  constructor(private name: Identifier, private value: Value) {
+    super();
+  }
+
+  compileToFragments(options: object): CodeFragment[] {
+    return this.name.compileToFragments(options);
+  }
+
+  eachName(iterator: Function) {
+    return iterator(this.name.value, this.name, this);
+  }
+}
+
+Parameter.prototype.children = ['name', 'value'];
 
 export class Code extends Base {
   constructor(
-    private params: string[] = [],
+    private params: any[] = [],
     private body: Block = new Block([]),
   ) {
     super();
   }
+
+  makeScope(parentScope: Scope): Scope {
+    return new Scope(parentScope, this.body, this);
+  }
+
+  eachParamName(iterator: Function) {
+    return this.params.reduce((acc, param) => [...acc, param.eachName(iterator)], []);
+  }
+
+  compileNode(options: object): CodeFragment[] {
+    this.eachParamName((name: string, node: Identifier, param: Parameter) => {
+      if (name in JS_FORBIDDEN) {
+        name = `_${name}`;
+      }
+    });
+
+    return [];
+  }
 }
+
+Code.prototype.children = ['params', 'body'];
