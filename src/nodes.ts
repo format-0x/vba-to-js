@@ -1,31 +1,32 @@
 import { SourceLocation } from '@babel/types';
 import { addToPrototype, fragmentsToString, jisonLocationToBabelLocation, NO, YES } from './util';
 import {
-  BlockType, JS_FORBIDDEN, TokenLocation, Variable, VariableKind, VariablePosition, VariableType
+  BlockType, JS_FORBIDDEN, Options, TokenLocation, Variable, VariableKind, VariablePosition, VariableType
 } from './types';
 
 export class Scope {
-  private variables: Variable[] = [];
+  private _variables: Variable[] = [];
   private positions: VariablePosition = {};
 
   constructor(
-    private parent: Scope,
-    private expressions: Block,
-    private method: Code,
+    private parent: Scope | null,
+    public expressions: Block,
+    private method: Code | null,
     private referencedVariables: object = {},
   ) {}
 
   add(
     name: string,
-    value: any = null,
+    value?: any,
     kind: VariableKind = 'Variable',
     type: VariableType = 'Variant',
   ): void {
     if (Object.prototype.hasOwnProperty.call(this.positions, name)) {
       // TODO: handle type reassignment
-      this.variables[this.positions[name]].value = value;
+      this._variables[this.positions[name]].value = value;
     } else {
-      this.positions[name] = this.variables.push({ name, type, kind, value });
+      const assigned = value !== undefined;
+      this.positions[name] = this._variables.push({ name, type, kind, value, assigned });
     }
   }
 
@@ -35,7 +36,11 @@ export class Scope {
   }
 
   find(name: string): Variable | undefined {
-    return this.variables.find(({ name: variableName }) => name === variableName);
+    return this._variables.find(({ name: variableName }) => name === variableName);
+  }
+
+  get variables() {
+    return this._variables.filter(({ kind }) => kind === 'Variable');
   }
 }
 
@@ -47,8 +52,8 @@ export class CodeFragment {
   }
 }
 
-
 abstract class Base {
+  abstract compileNode(options: object): CodeFragment[];
   @addToPrototype<(Base | string)[]>([]) // TODO: add proper types
   public children: (Base | string)[] = []; // TODO: add proper types
   private location: TokenLocation = {} as TokenLocation; // TODO: add proper types
@@ -59,12 +64,12 @@ abstract class Base {
     return { loc, type, ...props };
   }
 
-  compile(options: object) {
+  compile(options: Options) {
     return fragmentsToString(this.compileToFragments(options));
   }
 
-  compileToFragments(options: object): CodeFragment[] {
-    return [];
+  compileToFragments(options: Options): CodeFragment[] {
+    return this.compileNode(options);
   }
 
   joinFragments(fragmentsList: CodeFragment[][], separator: string): CodeFragment[] {
@@ -107,13 +112,43 @@ export class Block extends Base {
     return new Block(nodes);
   }
 
-  constructor(nodes: Base[]) {
+  constructor(nodes: Base[] = []) {
     super();
     this.expressions = nodes.flat(Infinity);
   }
 
-  compileRoot(options: object) {
-    return [];
+  compileRoot(options: Options) {
+    return this.compileWithDeclarations(options);
+  }
+
+  compileWithDeclarations(options: Options) {
+    const post = this.compileNode(options);
+    const { scope } = options;
+    const fragments = [];
+
+    if (scope?.expressions === this) {
+      const { variables } = scope;
+
+      if (variables.length) {
+        fragments.push(this.makeCode('var '));
+
+        variables.forEach(({ name, value, assigned }, i) => {
+          fragments.push(this.makeCode(name));
+
+          if (assigned) {
+            fragments.push(this.makeCode(` = ${value}`));
+          }
+
+          if (i !== variables.length - 1) {
+            fragments.push(this.makeCode(', '));
+          }
+        });
+
+        fragments.push(this.makeCode(';\n'));
+      }
+    }
+
+    return [...fragments, ...post];
   }
 
   get push() {
@@ -174,6 +209,7 @@ export class Root extends Base {
   }
 
   compileNode(options: object): CodeFragment[] {
+    this.initializeScope(options);
     const fragments: CodeFragment[] = this.body.compileRoot(options);
 
     return [
@@ -181,6 +217,12 @@ export class Root extends Base {
       ...fragments,
       this.makeCode('\n})();\n'),
     ];
+  }
+
+  initializeScope(options: Options) {
+    const { referencedVariables } = options;
+
+    options.scope = new Scope(null, this.body, null, referencedVariables);
   }
 
   get type(): string {
@@ -196,7 +238,13 @@ export class Root extends Base {
 Root.prototype.children = ['body'];
 
 export class Value extends Base {
+  constructor(private base: Base) {
+    super();
+  }
 
+  compileNode(options: object = {}) {
+    return this.base.compileToFragments(options);
+  }
 }
 
 // TODO: add proper types
@@ -218,11 +266,6 @@ export class Literal<T extends string> extends Base {
 }
 
 export class Identifier extends Literal<string> {
-  // TODO: add proper types
-  eachName(iterator: Function) {
-    return iterator(this);
-  }
-
   get props(): object {
     return { name: this.value };
   }
@@ -231,6 +274,10 @@ export class Identifier extends Literal<string> {
 export class Parameter extends Base {
   constructor(private name: Identifier, private value: Value) {
     super();
+  }
+
+  compileNode(options: object): CodeFragment[] {
+    return [];
   }
 
   compileToFragments(options: object): CodeFragment[] {

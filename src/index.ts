@@ -1,13 +1,13 @@
 import Lexer from './lexer';
 import bnf from './grammar';
 import * as nodes from './nodes';
-import { Token } from './types';
+import { Options, Token } from './types';
 
 const Parser = require('jison').Parser;
 
 const parser = new Parser({
   bnf,
-  startSymbol: 'Literal',
+  startSymbol: 'Root',
 });
 
 parser.yy = nodes;
@@ -37,8 +37,10 @@ parser.lexer = {
 
 const lexer = new Lexer();
 
-const compile = (code: string, options: object) => {
+const compile = (code: string, options: Options = {}) => {
   options = { ...options };
   const tokens = lexer.tokenize(code, options);
   const nodes = parser.parse(tokens);
 };
+
+compile('');

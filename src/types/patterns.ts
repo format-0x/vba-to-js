@@ -25,6 +25,7 @@ export interface Variable {
   type: VariableType;
   kind: VariableKind;
   value: any;
+  assigned: boolean;
 }
 
 export interface VariablePosition {
