@@ -8,5 +8,6 @@ export enum BlockType {
 
 export interface Options {
   scope?: Scope;
-  referencedVariables?: object;
+  referencedVariables?: string[];
+  reserve?: boolean;
 }

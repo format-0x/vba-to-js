@@ -1,7 +1,7 @@
 import { SourceLocation } from '@babel/types';
 import { addToPrototype, fragmentsToString, jisonLocationToBabelLocation, NO, YES } from './util';
 import {
-  BlockType, JS_FORBIDDEN, Options, TokenLocation, Variable, VariableKind, VariablePosition, VariableType
+  BlockType, Options, TokenLocation, Variable, VariableKind, VariablePosition, VariableType
 } from './types';
 
 export class Scope {
@@ -12,7 +12,7 @@ export class Scope {
     private parent: Scope | null,
     public expressions: Block,
     private method: Code | null,
-    private referencedVariables: object = {},
+    private referencedVariables: string[] = [],
   ) {}
 
   add(
@@ -33,6 +33,22 @@ export class Scope {
   check(name: string): boolean {
     // TODO: need parent lookup?
     return !!this.find(name);
+  }
+
+  freeVariable(name: string, options: Options = {}): string {
+    let temp: string;
+    let index = 0;
+
+    do {
+      temp = `${name}${++index}`;
+    }
+    while (this.find(temp) || this.referencedVariables.includes(name));
+
+    if (options.reserve) {
+      this.add(temp);
+    }
+
+    return temp;
   }
 
   find(name: string): Variable | undefined {
@@ -242,7 +258,7 @@ export class Value extends Base {
     super();
   }
 
-  compileNode(options: object = {}) {
+  compileNode(options: Options = {}) {
     return this.base.compileToFragments(options);
   }
 }
@@ -293,7 +309,7 @@ Parameter.prototype.children = ['name', 'value'];
 
 export class Code extends Base {
   constructor(
-    private params: any[] = [],
+    private params: Parameter[] = [],
     private body: Block = new Block([]),
   ) {
     super();
@@ -304,18 +320,50 @@ export class Code extends Base {
   }
 
   eachParamName(iterator: Function) {
-    return this.params.reduce((acc, param) => [...acc, param.eachName(iterator)], []);
+    // TODO: add proper types
+    return this.params.reduce((acc, param) => [...acc, param.eachName(iterator)], [] as any);
   }
 
-  compileNode(options: object): CodeFragment[] {
-    this.eachParamName((name: string, node: Identifier, param: Parameter) => {
-      if (name in JS_FORBIDDEN) {
-        name = `_${name}`;
-      }
+  compileNode(options: Required<Pick<Options, 'scope'>>): CodeFragment[] {
+    options.scope = this.makeScope(options.scope);
+
+    this.params.forEach((param) => {
+      options.scope.add(fragmentsToString(param.compileToFragments(options)));
     });
 
-    return [];
+    const output = [this.makeCode('function(')];
+
+    this.params.forEach((param, i) => {
+      if (i) {
+        output.push(this.makeCode(' ,'));
+      }
+
+      output.push(...param.compileToFragments(options));
+    });
+
+    output.push(
+      this.makeCode(') {\n'),
+      ...this.body.compileWithDeclarations(options),
+      this.makeCode('\n}'),
+    );
+
+    return output;
   }
 }
 
 Code.prototype.children = ['params', 'body'];
+
+export class Assign extends Base {
+  constructor(private variable: Identifier, private value: Value) {
+    super();
+  }
+
+  compileNode(options: object): CodeFragment[] {
+    const val = this.value.compileToFragments(options);
+    const name = this.variable.compileToFragments(options);
+
+    return [...name, this.makeCode('='), ...val];
+  }
+}
+
+Assign.prototype.children = ['variable', 'value'];

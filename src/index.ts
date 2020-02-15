@@ -5,7 +5,10 @@ import { Options, Token } from './types';
 
 const Parser = require('jison').Parser;
 
+const operators = [['right', '=']];
+
 const parser = new Parser({
+  operators,
   bnf,
   startSymbol: 'Root',
 });
@@ -13,6 +16,9 @@ const parser = new Parser({
 parser.yy = nodes;
 
 parser.lexer = {
+  yylloc: {
+    range: [],
+  },
   lex: function (): string {
     let tag: string;
     const token = parser.tokens[this.pos++];
