@@ -10,4 +10,5 @@ export interface Options {
   scope?: Scope;
   referencedVariables?: string[];
   reserve?: boolean;
+  makeReturn?: boolean;
 }

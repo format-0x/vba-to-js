@@ -272,7 +272,7 @@ export class Literal<T extends string> extends Base {
     this.value = value;
   }
 
-  compileNode(options: object): CodeFragment[] {
+  compileNode(options: Options): CodeFragment[] {
     return [this.makeCode(this.value)];
   }
 
@@ -281,14 +281,20 @@ export class Literal<T extends string> extends Base {
   }
 }
 
-export class Identifier extends Literal<string> {
+export class StringLiteral extends Literal<string> {
+  compileNode(options: Options): CodeFragment[] {
+    return this.compileToFragments(options);
+  }
+}
+
+export class IdentifierLiteral extends Literal<string> {
   get props(): object {
     return { name: this.value };
   }
 }
 
 export class Parameter extends Base {
-  constructor(private name: Identifier, private value: Value) {
+  constructor(private name: IdentifierLiteral, private value: Value) {
     super();
   }
 
@@ -354,7 +360,7 @@ export class Code extends Base {
 Code.prototype.children = ['params', 'body'];
 
 export class Assign extends Base {
-  constructor(private variable: Identifier, private value: Value) {
+  constructor(private variable: IdentifierLiteral, private value: Value) {
     super();
   }
 

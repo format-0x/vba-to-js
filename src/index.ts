@@ -64,9 +64,9 @@ const compile = (code: string, options: Options = {}) => {
   options = { ...options, referencedVariables };
 
   const nodes: Root = parser.parse(tokens);
-  // const fragments = nodes.compileToFragments(options);
-  //
-  // return fragmentsToString(fragments);
+  const fragments = nodes.compileToFragments(options);
+
+  return fragmentsToString(fragments);
 };
 
-compile('test');
+console.log(compile('test'));

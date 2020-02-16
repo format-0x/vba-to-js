@@ -1,4 +1,5 @@
 import {Options} from "./nodes";
+import {IdentifierLiteral} from "../nodes";
 
 export enum TYPES {
   Boolean,

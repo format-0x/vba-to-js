@@ -1,18 +1,23 @@
 // TODO: add proper types
-import {Block, Identifier, Root, Value} from './nodes';
-import { Alternative, Grammar } from './types';
+import { Alternative, Grammar, Options } from './types';
+import { Assign, Block, IdentifierLiteral, Root, StringLiteral, Value } from './nodes';
 
-declare var $1: any;
+declare const $1: any;
+declare const $2: any;
+declare const $3: any;
 
-const dispatch = (pattern: string, actionFunc?: Function, options: object = {}): Alternative => {
+const dispatch = (pattern: string, actionFunc?: Function, options: Options = {}): Alternative => {
   let action: string;
+  const { makeReturn, ...rest } = options;
 
   if (actionFunc) {
-    action = `${actionFunc}`.replace(/\bnew /g, '$&this.yy.');
-    action = `$$ = ${action};`;
+    action = `${actionFunc}`.replace(/nodes_1\./g, '');
+    action = action.replace(/\bnew /g, '$&yy.');
+    action = action.replace(/\b(?:Block\.wrap)\b/g, 'yy.$&');
+    action = `$$ = (${action})();`;
 
-    // TODO: add proper implementation
-    if (!pattern) {
+    if (makeReturn) {
+      options = rest;
       action = `return ${action}`;
     }
   } else {
@@ -26,10 +31,10 @@ const grammar: Grammar = {
   Root: [
     dispatch('', function () {
       return new Root(new Block());
-    }),
+    }, { makeReturn: true }),
     dispatch('Body', function () {
       return new Root($1);
-    }),
+    }, { makeReturn: true }),
   ],
   Body: [
     dispatch('Line', function () {
@@ -40,10 +45,25 @@ const grammar: Grammar = {
   Expression: [dispatch('Value')],
   Identifier: [
     dispatch('IDENTIFIER', function () {
-      return new Identifier($1);
+      return new IdentifierLiteral($1);
     }),
   ],
-  Assign: [dispatch('Value')],
+  AlphaNumeric: [
+    dispatch('String'),
+  ],
+  String: [
+    dispatch('STRING', function () {
+      return new StringLiteral($1.slice(1, -1));
+    }),
+  ],
+  Literal: [
+    dispatch('AlphaNumeric'),
+  ],
+  Assign: [
+    dispatch('Assignable = Expression', function () {
+      return new Assign($1, $3);
+    }),
+  ],
   SimpleAssignable: [
     dispatch('Identifier', function () {
       return new Value($1);
