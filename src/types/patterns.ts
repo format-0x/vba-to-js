@@ -1,3 +1,5 @@
+import {Options} from "./nodes";
+
 export enum TYPES {
   Boolean,
   Byte,
@@ -36,3 +38,8 @@ export enum JS_FORBIDDEN {
   CONST,
 }
 
+export type Alternative = [string, string, Options];
+
+export type Grammar = {
+  [key: string]: Alternative[],
+};

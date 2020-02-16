@@ -2,15 +2,21 @@ import Lexer from './lexer';
 import bnf from './grammar';
 import * as nodes from './nodes';
 import { Options, Token } from './types';
+import { Root } from './nodes';
+import { fragmentsToString } from './util';
 
 const Parser = require('jison').Parser;
-
 const operators = [['right', '=']];
+const patterns = Object.values(bnf).reduce((acc: string[], [[pattern]]) => {
+  return [...acc, ...pattern.split(/\s+/)];
+}, []);
+const tokens = [...new Set(patterns)].filter((token) => !bnf[token]).join(' ');
 
 const parser = new Parser({
   operators,
   bnf,
   startSymbol: 'Root',
+  tokens,
 });
 
 parser.yy = nodes;
@@ -45,8 +51,22 @@ const lexer = new Lexer();
 
 const compile = (code: string, options: Options = {}) => {
   options = { ...options };
-  const tokens = lexer.tokenize(code, options);
-  const nodes = parser.parse(tokens);
+
+  const tokens: Token[] = lexer.tokenize(code, options);
+  const referencedVariables = tokens.reduce((acc: string[], [tag, value]) => {
+    if (tag === 'IDENTIFIER') {
+      return [...acc, value];
+    }
+
+    return acc;
+  }, []);
+
+  options = { ...options, referencedVariables };
+
+  const nodes: Root = parser.parse(tokens);
+  // const fragments = nodes.compileToFragments(options);
+  //
+  // return fragmentsToString(fragments);
 };
 
-compile('');
+compile('test');
