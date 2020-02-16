@@ -22,4 +22,5 @@ export type TokenLocationRange = [number, number];
 
 export enum TokenType {
   Identifier = 'IDENTIFIER',
+  String = 'STRING',
 }

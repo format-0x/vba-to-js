@@ -194,7 +194,7 @@ export class Block extends Base {
     return !this.expressions.length;
   }
 
-  compileNode(options: object = {}) {
+  compileNode(options: Options = {}) {
     const compiledNodes: CodeFragment[][] = [];
 
     for (const node of this.expressions) {
@@ -281,11 +281,7 @@ export class Literal<T extends string> extends Base {
   }
 }
 
-export class StringLiteral extends Literal<string> {
-  compileNode(options: Options): CodeFragment[] {
-    return this.compileToFragments(options);
-  }
-}
+export class StringLiteral extends Literal<string> {}
 
 export class IdentifierLiteral extends Literal<string> {
   get props(): object {

@@ -42,7 +42,7 @@ const grammar: Grammar = {
     }),
   ],
   Line: [dispatch('Expression')],
-  Expression: [dispatch('Value')],
+  Expression: [dispatch('Value'), dispatch('Assign')],
   Identifier: [
     dispatch('IDENTIFIER', function () {
       return new IdentifierLiteral($1);
@@ -53,7 +53,7 @@ const grammar: Grammar = {
   ],
   String: [
     dispatch('STRING', function () {
-      return new StringLiteral($1.slice(1, -1));
+      return new StringLiteral($1);
     }),
   ],
   Literal: [

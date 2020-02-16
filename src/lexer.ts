@@ -1,5 +1,5 @@
 import { LexerOptions, Pos, Token, TokenLocation, TokenOptions, TokenType } from './types';
-import { IDENTIFIER, NEWLINE, WHITESPACE } from './patterns';
+import { IDENTIFIER, NEWLINE, STRING, WHITESPACE } from './patterns';
 
 export default class Lexer {
   private chunk: string = '';
@@ -24,6 +24,20 @@ export default class Lexer {
     return [index, lineIndex];
   }
 
+  stringToken(): number {
+    const [raw, quote, string] = STRING.exec(this.chunk) || [];
+
+    if (!raw) {
+      return 0;
+    }
+
+    const token = this.makeToken(TokenType.String, raw);
+
+    this.tokens.push(token);
+
+    return raw.length;
+  }
+
   identifierToken(): number {
     let match: RegExpExecArray | null;
 
@@ -41,6 +55,13 @@ export default class Lexer {
   }
 
   literalToken(): number {
+    const value = this.chunk.charAt(0);
+
+    // TODO: add proper implementation
+    if (value === '=') {
+      this.tokens.push(this.makeToken(value, value));
+    }
+
     return 1;
   }
 
@@ -81,7 +102,7 @@ export default class Lexer {
     this.lines = code.split(/(?<=\n)/);
 
     while ((this.chunk = code.slice(this.chunkOffset))) {
-      const consumed = this.identifierToken() || this.newlineToken() || this.whitespaceToken() || this.literalToken();
+      const consumed = this.identifierToken() || this.newlineToken() || this.whitespaceToken() || this.stringToken() || this.literalToken();
 
       this.chunkOffset += consumed;
     }

@@ -69,4 +69,4 @@ const compile = (code: string, options: Options = {}) => {
   return fragmentsToString(fragments);
 };
 
-console.log(compile('test'));
+console.log(compile('z = "test"'));
