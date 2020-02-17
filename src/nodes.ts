@@ -26,13 +26,12 @@ export class Scope {
       this._variables[this.positions[name]].value = value;
     } else {
       const assigned = value !== undefined;
-      this.positions[name] = this._variables.push({ name, type, kind, value, assigned });
+      this.positions[name] = this._variables.push({ name, type, kind, value, assigned }) - 1;
     }
   }
 
   check(name: string): boolean {
-    // TODO: need parent lookup?
-    return !!this.find(name);
+    return !!(this.find(name) || this.parent?.check(name));
   }
 
   freeVariable(name: string, options: Options = {}): string {
@@ -42,7 +41,7 @@ export class Scope {
     do {
       temp = `${name}${++index}`;
     }
-    while (this.find(temp) || this.referencedVariables.includes(name));
+    while (this.referencedVariables.includes(name) || this.find(temp));
 
     if (options.reserve) {
       this.add(temp);
@@ -70,8 +69,8 @@ export class CodeFragment {
 
 abstract class Base {
   abstract compileNode(options: object): CodeFragment[];
-  @addToPrototype<(Base | string)[]>([]) // TODO: add proper types
-  public children: (Base | string)[] = []; // TODO: add proper types
+  @addToPrototype<string[]>([]) // TODO: add proper types
+  public children: string[] = []; // TODO: add proper types
   private location: TokenLocation = {} as TokenLocation; // TODO: add proper types
 
   astNode() {
@@ -254,7 +253,7 @@ export class Root extends Base {
 Root.prototype.children = ['body'];
 
 export class Value extends Base {
-  constructor(private base: Base) {
+  constructor(public base: IdentifierLiteral) {
     super();
   }
 
@@ -356,15 +355,23 @@ export class Code extends Base {
 Code.prototype.children = ['params', 'body'];
 
 export class Assign extends Base {
-  constructor(private variable: IdentifierLiteral, private value: Value) {
+  constructor(private variable: Value, private value: Value) {
     super();
   }
 
-  compileNode(options: object): CodeFragment[] {
-    const val = this.value.compileToFragments(options);
-    const name = this.variable.compileToFragments(options);
+  compileNode(options: Required<Pick<Options, 'scope'>>): CodeFragment[] {
+    const { scope } = options;
+    const name = this.variable.base.value;
+    const declared = scope.check(name);
 
-    return [...name, this.makeCode('='), ...val];
+    if (!declared) {
+      scope.add(name);
+    }
+
+    const identifier = this.variable.compileToFragments(options);
+    const val = this.value.compileToFragments(options);
+
+    return [...identifier, this.makeCode('='), ...val];
   }
 }
 

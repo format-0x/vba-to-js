@@ -40,6 +40,11 @@ const grammar: Grammar = {
     dispatch('Line', function () {
       return Block.wrap([$1]);
     }),
+    dispatch('Body TERMINATOR Line', function () {
+      $1.push($3);
+      return $1;
+    }),
+    dispatch('Body TERMINATOR'),
   ],
   Line: [dispatch('Expression')],
   Expression: [dispatch('Value'), dispatch('Assign')],

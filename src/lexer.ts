@@ -62,7 +62,12 @@ export default class Lexer {
       this.tokens.push(this.makeToken(value, value));
     }
 
-    return 1;
+    // TODO: add proper implementation
+    if (value === ';') {
+      this.tokens.push(this.makeToken('TERMINATOR', value));
+    }
+
+    return value.length;
   }
 
   makeLocation(offset: number, length: number): TokenLocation {
