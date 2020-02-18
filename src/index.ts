@@ -4,9 +4,9 @@ import * as nodes from './nodes';
 import { Options, Token } from './types';
 import { Root } from './nodes';
 import { fragmentsToString } from './util';
+import { operators } from './patterns';
 
 const Parser = require('jison').Parser;
-const operators = [['right', '=']];
 const patterns = Object.values(bnf).reduce((acc: string[], [[pattern]]) => {
   return [...acc, ...pattern.split(/\s+/)];
 }, []);
@@ -70,7 +70,7 @@ const compile = (code: string, options: Options = {}) => {
 };
 
 console.log(compile(`
-  z = "void";
+  z = 0;
   x = "";
   z = "test";
 `));

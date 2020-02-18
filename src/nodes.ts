@@ -282,6 +282,8 @@ export class Literal<T extends string> extends Base {
 
 export class StringLiteral extends Literal<string> {}
 
+export class NumberLiteral extends Literal<string> {}
+
 export class IdentifierLiteral extends Literal<string> {
   get props(): object {
     return { name: this.value };

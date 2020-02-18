@@ -1,5 +1,5 @@
 import { LexerOptions, Pos, Token, TokenLocation, TokenOptions, TokenType } from './types';
-import { IDENTIFIER, NEWLINE, STRING, WHITESPACE } from './patterns';
+import {IDENTIFIER, NEWLINE, NUMBER, OPERATOR, STRING, WHITESPACE} from './patterns';
 
 export default class Lexer {
   private chunk: string = '';
@@ -55,13 +55,22 @@ export default class Lexer {
   }
 
   literalToken(): number {
-    const value = this.chunk.charAt(0);
+    let match: RegExpExecArray | null;
+    let value: string;
 
+    ((match = OPERATOR.exec(this.chunk)))
+      ? ([value] = match)
+      : (value = this.chunk.charAt(0));
+
+    let tag = value;
     // TODO: add proper implementation
     if (value === '=') {
-      this.tokens.push(this.makeToken(value, value));
+      this.tokens.push(this.makeToken(tag, value));
     }
-
+    // TODO: add proper implementation
+    if (value === '+') {
+      this.tokens.push(this.makeToken(tag, value));
+    }
     // TODO: add proper implementation
     if (value === ';') {
       this.tokens.push(this.makeToken('TERMINATOR', value));
@@ -91,6 +100,21 @@ export default class Lexer {
     return [tag, value, location];
   }
 
+  numberToken(): number {
+    let match: RegExpExecArray | null;
+
+    if (!(match = NUMBER.exec(this.chunk))) {
+      return 0;
+    }
+
+    const [number] = match;
+    const token = this.makeToken(TokenType.Number, number);
+
+    this.tokens.push(token);
+
+    return number.length;
+  }
+
   newlineToken(): number {
     let match: RegExpExecArray | null;
 
@@ -107,7 +131,7 @@ export default class Lexer {
     this.lines = code.split(/(?<=\n)/);
 
     while ((this.chunk = code.slice(this.chunkOffset))) {
-      const consumed = this.identifierToken() || this.newlineToken() || this.whitespaceToken() || this.stringToken() || this.literalToken();
+      const consumed = this.identifierToken() || this.newlineToken() || this.whitespaceToken() || this.stringToken() || this.numberToken() || this.literalToken();
 
       this.chunkOffset += consumed;
     }

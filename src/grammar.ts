@@ -1,6 +1,6 @@
 // TODO: add proper types
 import { Alternative, Grammar, Options } from './types';
-import { Assign, Block, IdentifierLiteral, Root, StringLiteral, Value } from './nodes';
+import { Assign, Block, IdentifierLiteral, NumberLiteral, Root, StringLiteral, Value } from './nodes';
 
 declare const $1: any;
 declare const $2: any;
@@ -54,6 +54,9 @@ const grammar: Grammar = {
     }),
   ],
   AlphaNumeric: [
+    dispatch('NUMBER', function () {
+      return new NumberLiteral($1);
+    }),
     dispatch('String'),
   ],
   String: [
@@ -81,6 +84,11 @@ const grammar: Grammar = {
     dispatch('Assignable'),
     dispatch('Literal', function () {
       return new Value($1);
+    }),
+  ],
+  Operation: [
+    dispatch('Expression + Expression', function () {
+      return $1 + $3;
     }),
   ],
 };
