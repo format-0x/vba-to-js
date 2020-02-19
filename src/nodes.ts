@@ -114,6 +114,10 @@ abstract class Base {
   makeCode(code: Function | string): CodeFragment {
     return new CodeFragment(code);
   }
+
+  wrapInParentheses(fragments: CodeFragment[]): CodeFragment[] {
+    return [this.makeCode('('), ...fragments, this.makeCode(')')];
+  }
 }
 
 Base.prototype.children = [];
@@ -213,6 +217,26 @@ export class Block extends Base {
 }
 
 Block.prototype.children = ['expressions'];
+
+export class Op extends Base {
+  constructor(
+    private operator: string,
+    private leftHandSide: Literal<any>, // TODO: add proper types
+    private rightHandSide: Literal<any>, // TODO: add proper types
+  ) {
+    super();
+  }
+
+  isUnary() {
+    return !this.rightHandSide;
+  }
+
+  compileNode(options: Options): CodeFragment[] {
+    const lhs = this.leftHandSide.compileToFragments(options);
+    const rhs = this.rightHandSide.compileToFragments(options);
+    return this.wrapInParentheses([...lhs, this.makeCode(this.operator), ...rhs]);
+  }
+}
 
 export class Root extends Base {
   private body: Block;

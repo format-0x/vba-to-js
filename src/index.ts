@@ -70,7 +70,7 @@ const compile = (code: string, options: Options = {}) => {
 };
 
 console.log(compile(`
-  z = 0;
-  x = "";
-  z = "test";
+  z = 0 / 0;
+  x = 3 ^ 2 >= 1 <= 0 % 0;
+  z = "test" \\ 42;
 `));

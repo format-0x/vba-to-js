@@ -1,10 +1,11 @@
 // TODO: add proper types
 import { Alternative, Grammar, Options } from './types';
-import { Assign, Block, IdentifierLiteral, NumberLiteral, Root, StringLiteral, Value } from './nodes';
+import {Assign, Block, IdentifierLiteral, NumberLiteral, Op, Root, StringLiteral, Value} from './nodes';
 
 declare const $1: any;
 declare const $2: any;
 declare const $3: any;
+declare const $4: any;
 
 const dispatch = (pattern: string, actionFunc?: Function, options: Options = {}): Alternative => {
   let action: string;
@@ -47,7 +48,7 @@ const grammar: Grammar = {
     dispatch('Body TERMINATOR'),
   ],
   Line: [dispatch('Expression')],
-  Expression: [dispatch('Value'), dispatch('Assign')],
+  Expression: [dispatch('Value'), dispatch('Code'), dispatch('Operation'), dispatch('Assign')],
   Identifier: [
     dispatch('IDENTIFIER', function () {
       return new IdentifierLiteral($1);
@@ -71,6 +72,9 @@ const grammar: Grammar = {
     dispatch('Assignable = Expression', function () {
       return new Assign($1, $3);
     }),
+    dispatch('Assignable = TERMINATOR Expression', function () {
+      return new Assign($1, $4);
+    }),
   ],
   SimpleAssignable: [
     dispatch('Identifier', function () {
@@ -87,8 +91,35 @@ const grammar: Grammar = {
     }),
   ],
   Operation: [
+    dispatch('Expression & Expression', function () {
+      return new Op('+', $1, $3);
+    }),
     dispatch('Expression + Expression', function () {
-      return $1 + $3;
+      return new Op('+', $1, $3);
+    }),
+    dispatch('Expression - Expression', function () {
+      return new Op('-', $1, $3);
+    }),
+    dispatch('Expression % Expression', function () {
+      return new Op('%', $1, $3);
+    }),
+    dispatch('Expression \\ Expression', function () {
+      return new Op('/', $1, $3);
+    }),
+    dispatch('Expression * Expression', function () {
+      return new Op('*', $1, $3);
+    }),
+    dispatch('Expression / Expression', function () {
+      return new Op('/', $1, $3);
+    }),
+    dispatch('Expression ^ Expression', function () {
+      return new Op('^', $1, $3);
+    }),
+    dispatch('Expression COMPARE Expression', function () {
+      return new Op($2, $1, $3);
+    }),
+    dispatch('Expression LOGICAL Expression', function () {
+      return new Op($2, $1, $3);
     }),
   ],
 };

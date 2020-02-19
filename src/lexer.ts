@@ -1,5 +1,5 @@
 import { LexerOptions, Pos, Token, TokenLocation, TokenOptions, TokenType } from './types';
-import {IDENTIFIER, NEWLINE, NUMBER, OPERATOR, STRING, WHITESPACE} from './patterns';
+import { COMPARE, IDENTIFIER, LOGICAL, MATH, NEWLINE, NUMBER, OPERATOR, STRING, WHITESPACE } from './patterns';
 
 export default class Lexer {
   private chunk: string = '';
@@ -54,6 +54,11 @@ export default class Lexer {
     return id.length;
   }
 
+  prev() {
+    const [prev] = this.tokens.slice(-1);
+    return prev;
+  }
+
   literalToken(): number {
     let match: RegExpExecArray | null;
     let value: string;
@@ -63,18 +68,21 @@ export default class Lexer {
       : (value = this.chunk.charAt(0));
 
     let tag = value;
-    // TODO: add proper implementation
-    if (value === '=') {
-      this.tokens.push(this.makeToken(tag, value));
-    }
-    // TODO: add proper implementation
-    if (value === '+') {
-      this.tokens.push(this.makeToken(tag, value));
+    const [prev] = this.prev();
+
+    if (value === '=' && prev !== 'IDENTIFIER') {
+      tag = 'COMPARE';
+    } else if (COMPARE.includes(value)) {
+      tag = 'COMPARE';
+    } else if (LOGICAL.includes(value)) {
+      tag = 'LOGICAL';
     }
     // TODO: add proper implementation
     if (value === ';') {
-      this.tokens.push(this.makeToken('TERMINATOR', value));
+      tag = 'TERMINATOR';
     }
+
+    this.tokens.push(this.makeToken(tag, value));
 
     return value.length;
   }
