@@ -1,13 +1,14 @@
-export const IDENTIFIER = /^(?!\d)(?:\w+)/;
+export const IDENTIFIER = /^(?!\d)((?:\w+))([%&#$!@])?/;
 export const WHITESPACE = /^\s+/;
 export const NEWLINE = /^\n+/;
 export const STRING = /^(["'])(.*?)\1/;
 export const NUMBER = /^\d+/;
 export const OPERATOR = /^(?:[-+*/\\^%=&]|<>|[><]=?|x?or|and|not|eqv|imp)/i;
+export const MODIFIER = /^(?:dim|static|private|public)/i;
 
 export const MATH = ['-', '+', '%', '\\', '*', '/', '^'];
 export const COMPARE = ['<>', '>', '<=', '>=', '<'];
-export const LOGICAL = ['Imp', 'Eqv', 'Xor', 'Or', 'And', 'Not'];
+export const LOGICAL = ['imp', 'eqv', 'xor', 'or', 'and', 'not'];
 
 export const operators = [
   ['left', 'LOGICAL'],
@@ -18,4 +19,5 @@ export const operators = [
   ['left', '\\'],
   ['left', '*', '/'],
   ['left', '^'],
+  ['right', 'MODIFIER'],
 ];

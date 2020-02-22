@@ -1,5 +1,5 @@
-import { LexerOptions, Pos, Token, TokenLocation, TokenOptions, TokenType } from './types';
-import { COMPARE, IDENTIFIER, LOGICAL, MATH, NEWLINE, NUMBER, OPERATOR, STRING, WHITESPACE } from './patterns';
+import { LexerOptions, Pos, ShorthandTypes, Token, TokenLocation, TokenOptions, TokenType, TYPES } from './types';
+import { COMPARE, IDENTIFIER, LOGICAL, MATH, MODIFIER, NEWLINE, NUMBER, OPERATOR, STRING, WHITESPACE } from './patterns';
 
 export default class Lexer {
   private chunk: string = '';
@@ -40,14 +40,37 @@ export default class Lexer {
 
   identifierToken(): number {
     let match: RegExpExecArray | null;
+    let tag: string;
 
     if (!(match = IDENTIFIER.exec(this.chunk))) {
       return 0;
     }
 
-    const [id] = match;
+    const [input, id, shorthand] = match;
+    const [prev] = this.prev() || [];
 
-    const token = this.makeToken(TokenType.Identifier, id);
+    if (shorthand) {
+      this.tokens.push(this.makeToken(TokenType.Identifier, id));
+      this.tokens.push(this.makeToken(TokenType.As, 'as'));
+      this.tokens.push(this.makeToken(TokenType.Type, ShorthandTypes[<keyof typeof ShorthandTypes>shorthand]));
+
+      return input.length;
+    }
+
+    if (id === 'As') {
+      tag = TokenType.As;
+    } else if (prev === TokenType.As) {
+      if (!(id in TYPES)) {
+        // TODO: add proper implementation (error)
+        console.error(`error: ${id}`);
+      }
+
+      tag = TokenType.Type;
+    } else {
+      tag = TokenType.Identifier;
+    }
+
+    const token = this.makeToken(tag, id);
 
     this.tokens.push(token);
 
@@ -57,6 +80,21 @@ export default class Lexer {
   prev() {
     const [prev] = this.tokens.slice(-1);
     return prev;
+  }
+
+  modifierToken(): number {
+    let match: RegExpExecArray | null;
+
+    if (!(match = MODIFIER.exec(this.chunk))) {
+      return 0;
+    }
+
+    const [modifier] = match;
+    const token = this.makeToken(TokenType.Modifier, modifier);
+
+    this.tokens.push(token);
+
+    return modifier.length;
   }
 
   literalToken(): number {
@@ -139,7 +177,7 @@ export default class Lexer {
     this.lines = code.split(/(?<=\n)/);
 
     while ((this.chunk = code.slice(this.chunkOffset))) {
-      const consumed = this.identifierToken() || this.newlineToken() || this.whitespaceToken() || this.stringToken() || this.numberToken() || this.literalToken();
+      const consumed = this.modifierToken() || this.identifierToken() || this.newlineToken() || this.whitespaceToken() || this.stringToken() || this.numberToken() || this.literalToken();
 
       this.chunkOffset += consumed;
     }

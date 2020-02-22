@@ -24,4 +24,7 @@ export enum TokenType {
   Identifier = 'IDENTIFIER',
   String = 'STRING',
   Number = 'NUMBER',
+  Modifier = 'MODIFIER',
+  As = 'AS',
+  Type = 'TYPE',
 }

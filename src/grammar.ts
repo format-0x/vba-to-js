@@ -1,6 +1,16 @@
 // TODO: add proper types
 import { Alternative, Grammar, Options } from './types';
-import {Assign, Block, IdentifierLiteral, NumberLiteral, Op, Root, StringLiteral, Value} from './nodes';
+import {
+  Assign,
+  Block,
+  IdentifierLiteral,
+  NumberLiteral,
+  Op,
+  Root,
+  StringLiteral,
+  Value,
+  VariableDeclaration, VariableDeclarationList
+} from './nodes';
 
 declare const $1: any;
 declare const $2: any;
@@ -47,8 +57,14 @@ const grammar: Grammar = {
     }),
     dispatch('Body TERMINATOR'),
   ],
-  Line: [dispatch('Expression')],
-  Expression: [dispatch('Value'), dispatch('Code'), dispatch('Operation'), dispatch('Assign')],
+  Line: [dispatch('Expression'), dispatch('Statement')],
+  Statement: [dispatch('VariableDeclaration')],
+  Expression: [
+    dispatch('Value'),
+    dispatch('Code'),
+    dispatch('Operation'),
+    dispatch('Assign')
+  ],
   Identifier: [
     dispatch('IDENTIFIER', function () {
       return new IdentifierLiteral($1);
@@ -88,6 +104,27 @@ const grammar: Grammar = {
     dispatch('Assignable'),
     dispatch('Literal', function () {
       return new Value($1);
+    }),
+  ],
+  VariableDeclaration: [
+    dispatch('MODIFIER VariableList', function () {
+      return new VariableDeclarationList($2, $1);
+    }),
+  ],
+  VariableList: [
+    dispatch('Variable', function () {
+      return [$1];
+    }),
+    dispatch('VariableList , Variable', function () {
+      return [...$1, $3];
+    }),
+  ],
+  Variable: [
+    dispatch('Identifier', function () {
+      return new VariableDeclaration($1);
+    }),
+    dispatch('Identifier AS TYPE', function () {
+      return new VariableDeclaration($1, $3);
     }),
   ],
   Operation: [

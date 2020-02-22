@@ -1,11 +1,11 @@
 import { SourceLocation } from '@babel/types';
 import { addToPrototype, fragmentsToString, jisonLocationToBabelLocation, NO, YES } from './util';
 import {
-  BlockType, Options, TokenLocation, Variable, VariableKind, VariablePosition, VariableType
+  BlockType, Options, TokenLocation, ValueParams, VariableParams, VariableKind, VariablePosition, VariableType, Modifier
 } from './types';
 
 export class Scope {
-  private _variables: Variable[] = [];
+  private _variables: VariableParams[] = [];
   private positions: VariablePosition = {};
 
   constructor(
@@ -17,9 +17,9 @@ export class Scope {
 
   add(
     name: string,
+    type: VariableType = 'Variant',
     value?: any,
     kind: VariableKind = 'Variable',
-    type: VariableType = 'Variant',
   ): void {
     if (Object.prototype.hasOwnProperty.call(this.positions, name)) {
       // TODO: handle type reassignment
@@ -50,7 +50,7 @@ export class Scope {
     return temp;
   }
 
-  find(name: string): Variable | undefined {
+  find(name: string): VariableParams | undefined {
     return this._variables.find(({ name: variableName }) => name === variableName);
   }
 
@@ -74,9 +74,9 @@ abstract class Base {
   private location: TokenLocation = {} as TokenLocation; // TODO: add proper types
 
   astNode() {
-    const { loc, props, type } = this;
+    const { loc, nodeProps, nodeType: type } = this;
 
-    return { loc, type, ...props };
+    return { loc, type, ...nodeProps };
   }
 
   compile(options: Options) {
@@ -99,7 +99,7 @@ abstract class Base {
     }, []);
   }
 
-  get type(): string {
+  get nodeType(): string {
     return this.constructor.name;
   }
 
@@ -107,7 +107,7 @@ abstract class Base {
     return jisonLocationToBabelLocation(this.location);
   }
 
-  get props(): object {
+  get nodeProps(): object {
     return {};
   }
 
@@ -182,7 +182,7 @@ export class Block extends Base {
     return this.expressions.unshift.bind(this.expressions);
   }
 
-  get type(): BlockType {
+  get nodeType(): BlockType {
     switch (true) {
     case this.isRootBlock():
       return BlockType.RootBlock;
@@ -264,11 +264,11 @@ export class Root extends Base {
     options.scope = new Scope(null, this.body, null, referencedVariables);
   }
 
-  get type(): string {
+  get nodeType(): string {
     return 'File';
   }
 
-  get props(): object {
+  get nodeProps(): object {
     const program = this.body.compileNode();
     return { program };
   }
@@ -277,7 +277,7 @@ export class Root extends Base {
 Root.prototype.children = ['body'];
 
 export class Value extends Base {
-  constructor(public base: IdentifierLiteral) {
+  constructor(public base: IdentifierLiteral, public params: ValueParams = {}) {
     super();
   }
 
@@ -299,7 +299,7 @@ export class Literal<T extends string> extends Base {
     return [this.makeCode(this.value)];
   }
 
-  get props(): object {
+  get nodeProps(): object {
     return { value: this.value };
   }
 }
@@ -309,7 +309,7 @@ export class StringLiteral extends Literal<string> {}
 export class NumberLiteral extends Literal<string> {}
 
 export class IdentifierLiteral extends Literal<string> {
-  get props(): object {
+  get nodeProps(): object {
     return { name: this.value };
   }
 }
@@ -379,6 +379,36 @@ export class Code extends Base {
 }
 
 Code.prototype.children = ['params', 'body'];
+
+export class VariableDeclaration extends Base {
+  constructor(private name: IdentifierLiteral, private type?: VariableType) {
+    super();
+  }
+
+  compileNode(options: Required<Pick<Options, 'scope' | 'modifier'>>): CodeFragment[] {
+    const { scope, modifier } = options;
+    // TODO: add proper implementation (modifier rules)
+    scope.add(this.name.value, this.type);
+
+    return [];
+  }
+}
+
+export class VariableDeclarationList extends Base {
+  constructor(private variableList: VariableDeclaration[], private modifier: Modifier) {
+    super();
+  }
+
+  compileNode(options: Required<Pick<Options, 'scope'>>): CodeFragment[] {
+    const { modifier } = this;
+
+    return this.variableList.map((variable) => {
+      return variable.compileNode({ ...options, modifier });
+    }).flat();
+  }
+}
+
+VariableDeclaration.prototype.children = ['variableList'];
 
 export class Assign extends Base {
   constructor(private variable: Value, private value: Value) {

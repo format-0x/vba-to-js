@@ -1,5 +1,5 @@
-import {Options} from "./nodes";
-import {IdentifierLiteral} from "../nodes";
+import { Options } from './nodes';
+import { IdentifierLiteral } from '../nodes';
 
 export enum TYPES {
   Boolean,
@@ -20,10 +20,19 @@ export enum Kind {
   Variable,
 }
 
+export enum ShorthandTypes {
+  '%' = 'Integer',
+  '&' = 'Long',
+  '#' = 'Double',
+  '$' = 'String',
+  '!' = 'Single',
+  '@' = 'Currency',
+}
+
 export type VariableType = keyof typeof TYPES;
 export type VariableKind = keyof typeof Kind;
 
-export interface Variable {
+export interface VariableParams {
   name: string;
   type: VariableType;
   kind: VariableKind;
