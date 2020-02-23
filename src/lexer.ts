@@ -51,7 +51,7 @@ export default class Lexer {
 
     if (shorthand) {
       this.tokens.push(this.makeToken(TokenType.Identifier, id));
-      this.tokens.push(this.makeToken(TokenType.As, 'as'));
+      this.tokens.push(this.makeToken(TokenType.As, 'As'));
       this.tokens.push(this.makeToken(TokenType.Type, ShorthandTypes[<keyof typeof ShorthandTypes>shorthand]));
 
       return input.length;
@@ -66,6 +66,14 @@ export default class Lexer {
       }
 
       tag = TokenType.Type;
+    } else if (prev === 'END' && id === 'Sub') {
+      this.tokens.pop();
+
+      tag = 'SUB_END';
+    } else if (id === 'Sub') {
+      tag = 'SUB_START';
+    } else if (id === 'End') {
+      tag = 'END';
     } else {
       tag = TokenType.Identifier;
     }
@@ -108,8 +116,10 @@ export default class Lexer {
     let tag = value;
     const [prev] = this.prev();
 
-    if (value === '=' && prev !== 'IDENTIFIER') {
+    if (value === '=' && !['IDENTIFIER', 'TYPE'].includes(prev)) {
       tag = 'COMPARE';
+    } else if (value === '*' && prev === TokenType.Type) {
+      tag = 'SIZE';
     } else if (COMPARE.includes(value)) {
       tag = 'COMPARE';
     } else if (LOGICAL.includes(value)) {
@@ -118,6 +128,10 @@ export default class Lexer {
     // TODO: add proper implementation
     if (value === ';') {
       tag = 'TERMINATOR';
+    } else if (value === '(') {
+      tag = 'PARAM_START';
+    } else if (value === ')') {
+      tag = 'PARAM_END';
     }
 
     this.tokens.push(this.makeToken(tag, value));
@@ -169,6 +183,8 @@ export default class Lexer {
     }
 
     const [input] = match;
+
+    this.tokens.push(this.makeToken('TERMINATOR', input));
 
     return input.length;
   }

@@ -69,9 +69,7 @@ const compile = (code: string, options: Options = {}) => {
   return fragmentsToString(fragments);
 };
 
-console.log(compile(`
-  Dim a, b!, c$, d As String;
-  Static x As String, n%;
-  d = "test";
-  u = 42;
-`));
+console.log(compile(`Dim a, b!, c$, d As String * 10
+  Static x As String, n%
+  d = "test"
+  u = 42`));

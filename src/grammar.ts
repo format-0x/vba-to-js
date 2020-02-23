@@ -2,12 +2,12 @@
 import { Alternative, Grammar, Options } from './types';
 import {
   Assign,
-  Block,
+  Block, Code,
   IdentifierLiteral, Literal,
   NumberLiteral,
-  Op,
+  Op, Parameter,
   Root,
-  StringLiteral,
+  StringLiteral, Type,
   Value,
   VariableDeclaration, VariableDeclarationList
 } from './nodes';
@@ -16,6 +16,8 @@ declare const $1: any;
 declare const $2: any;
 declare const $3: any;
 declare const $4: any;
+declare const $5: any;
+declare const $6: any;
 
 const dispatch = (pattern: string, actionFunc?: Function, options: Options = {}): Alternative => {
   let action: string;
@@ -70,11 +72,10 @@ const grammar: Grammar = {
       return new IdentifierLiteral($1);
     }),
   ],
-  AlphaNumeric: [
+  Number: [
     dispatch('NUMBER', function () {
       return new NumberLiteral($1);
     }),
-    dispatch('String'),
   ],
   String: [
     dispatch('STRING', function () {
@@ -82,7 +83,7 @@ const grammar: Grammar = {
     }),
   ],
   Literal: [
-    dispatch('AlphaNumeric'),
+    dispatch('String'), dispatch('Number')
   ],
   Assign: [
     dispatch('Assignable = Expression', function () {
@@ -92,9 +93,36 @@ const grammar: Grammar = {
       return new Assign($1, $4);
     }),
   ],
+  ParamList: [
+    dispatch('', function () {
+      return [];
+    }),
+    dispatch('ParamVariable', function () {
+      return [$1];
+    }),
+    dispatch('ParamList , ParamVariable', function () {
+      return [...$1, $3];
+    }),
+  ],
+  ParamVariable: [
+    dispatch('Identifier', function () {
+      return new Parameter($1);
+    }),
+    dispatch('Identifier AS TYPE', function () {
+      return new Parameter($1, new Type($3));
+    }),
+    dispatch('Identifier AS TYPE = Expression', function () {
+      return new Parameter($1, new Type($3), $5);
+    }),
+  ],
   SimpleAssignable: [
     dispatch('Identifier', function () {
       return new Value($1);
+    }),
+  ],
+  Code: [
+    dispatch('SUB_START Identifier PARAM_START ParamList PARAM_END Line SUB_END', function () {
+      return new Code($2, $4, Block.wrap([$6]));
     }),
   ],
   Assignable: [
@@ -124,10 +152,10 @@ const grammar: Grammar = {
       return new VariableDeclaration($1);
     }),
     dispatch('Identifier AS TYPE', function () {
-      return new VariableDeclaration(
-        $1,
-        new Value(new Literal<string>(''), { type: $3 })
-      );
+      return new VariableDeclaration($1, new Type($3));
+    }),
+    dispatch('Identifier AS TYPE SIZE NUMBER', function () {
+      return new VariableDeclaration($1, new Type($3, { size: $5 }));
     }),
   ],
   Operation: [

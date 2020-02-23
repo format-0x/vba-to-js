@@ -1,7 +1,16 @@
 import { SourceLocation } from '@babel/types';
 import { addToPrototype, fragmentsToString, jisonLocationToBabelLocation, NO, YES } from './util';
 import {
-  BlockType, Options, TokenLocation, ValueParams, VariableParams, VariableKind, VariablePosition, VariableType, Modifier
+  BlockType,
+  Options,
+  TokenLocation,
+  ValueParams,
+  VariableParams,
+  VariableKind,
+  VariablePosition,
+  VariableType,
+  Modifier,
+  TYPES
 } from './types';
 
 export class Scope {
@@ -221,8 +230,8 @@ Block.prototype.children = ['expressions'];
 export class Op extends Base {
   constructor(
     private operator: string,
-    private leftHandSide: Literal<any>, // TODO: add proper types
-    private rightHandSide: Literal<any>, // TODO: add proper types
+    private leftHandSide: Literal, // TODO: add proper types
+    private rightHandSide: Literal, // TODO: add proper types
   ) {
     super();
   }
@@ -277,22 +286,18 @@ export class Root extends Base {
 Root.prototype.children = ['body'];
 
 export class Value extends Base {
-  constructor(public base: Literal<any>, public params: ValueParams = { type: 'Variant' }) {
+  constructor(public base: Literal, public params: ValueParams = {}) {
     super();
   }
 
   compileNode(options: Options = {}) {
     return this.base.compileToFragments(options);
   }
-
-  get type(): VariableType {
-    return this.params.type;
-  }
 }
 
 // TODO: add proper types
-export class Literal<T extends any> extends Base {
-  constructor(public value: T) {
+export class Literal extends Base {
+  constructor(public value: any) {
     super();
   }
 
@@ -305,38 +310,65 @@ export class Literal<T extends any> extends Base {
   }
 }
 
-export class StringLiteral extends Literal<string> {}
-
-export class NumberLiteral extends Literal<string> {}
-
-export class IdentifierLiteral extends Literal<string> {
+export class IdentifierLiteral extends Literal {
   get nodeProps(): object {
     return { name: this.value };
   }
 }
 
-export class Parameter extends Base {
-  constructor(private name: IdentifierLiteral, private value: Value) {
+export class VariableDeclaration extends Base {
+  constructor(
+    protected name: IdentifierLiteral,
+    protected variableType: Type = new Type('Variant'),
+    protected initializer?: Value,
+  ) {
     super();
   }
 
-  compileNode(options: object): CodeFragment[] {
-    return [];
+  declare(options: Required<Pick<Options, 'scope' | 'modifier'>>): void {
+    const { scope, modifier } = options;
+    // TODO: add proper implementation (modifier rules)
+    let value: string | undefined;
+    if (this.initializer) {
+      const [init] = this.initializer.compileToFragments(options);
+
+      [value] = init.toString();
+    }
+
+    scope.add(this.name.value, this.variableType.type, value);
   }
 
-  compileToFragments(options: object): CodeFragment[] {
-    return this.name.compileToFragments(options);
-  }
+  compileNode(options: Options): CodeFragment[] {
+    const name = this.name.compileToFragments(options);
 
-  eachName(iterator: Function) {
-    return iterator(this.name.value, this.name, this);
+    if (this.initializer) {
+      const value = this.initializer.compileToFragments(options);
+
+      return [...name, this.makeCode('='), ...value];
+    }
+
+    return name;
   }
 }
 
-Parameter.prototype.children = ['name', 'value'];
+export class Parameter extends VariableDeclaration {
+  declare(options: Required<Pick<Options, 'scope'>>): void {
+    const { scope } = options;
+    let value: string | undefined;
+    // TODO: add proper implementation (modifier rules)
+    if (this.initializer) {
+      const [init] = this.initializer.compileToFragments(options);
+
+      [value] = init.toString();
+    }
+
+    scope.add(this.name.value, this.variableType.type, value, 'Parameter');
+  }
+}
 
 export class Code extends Base {
   constructor(
+    private name: IdentifierLiteral,
     private params: Parameter[] = [],
     private body: Block = new Block([]),
   ) {
@@ -347,23 +379,17 @@ export class Code extends Base {
     return new Scope(parentScope, this.body, this);
   }
 
-  eachParamName(iterator: Function) {
-    // TODO: add proper types
-    return this.params.reduce((acc, param) => [...acc, param.eachName(iterator)], [] as any);
-  }
-
   compileNode(options: Required<Pick<Options, 'scope'>>): CodeFragment[] {
     options.scope = this.makeScope(options.scope);
 
-    this.params.forEach((param) => {
-      options.scope.add(fragmentsToString(param.compileToFragments(options)));
-    });
-
-    const output = [this.makeCode('function(')];
+    const name = this.name.compileToFragments(options);
+    const output: CodeFragment[] = [this.makeCode('function '), ...name, this.makeCode('(')];
 
     this.params.forEach((param, i) => {
+      param.declare(options);
+
       if (i) {
-        output.push(this.makeCode(' ,'));
+        output.push(this.makeCode(', '));
       }
 
       output.push(...param.compileToFragments(options));
@@ -381,32 +407,16 @@ export class Code extends Base {
 
 Code.prototype.children = ['params', 'body'];
 
-export class VariableDeclaration extends Base {
-  constructor(
-    private name: IdentifierLiteral,
-    private initializer?: Value,
-  ) {
-    super();
-  }
+export class BooleanLiteral extends Literal {}
 
-  compileNode(options: Required<Pick<Options, 'scope' | 'modifier'>>): CodeFragment[] {
-    const { scope, modifier } = options;
-    // TODO: add proper implementation (modifier rules)
-    if (this.initializer) {
-      const { type } = this.initializer;
-      const [value] = this.initializer.compileToFragments(options);
-      // @ts-ignore
-      if (value == '') {
-        scope.add(this.name.value, type);
-      } else {
-        scope.add(this.name.value, type, value.toString());
-      }
-    } else {
-      scope.add(this.name.value);
-    }
+export class DateLiteral extends Literal {}
 
-    return [];
-  }
+export class StringLiteral extends Literal {}
+
+export class NumberLiteral extends Literal {}
+
+export class Type {
+  constructor(public type: VariableType, public params: object = {}) {}
 }
 
 export class VariableDeclarationList extends Base {
@@ -418,7 +428,7 @@ export class VariableDeclarationList extends Base {
     const { modifier } = this;
 
     return this.variableList.map((variable) => {
-      return variable.compileNode({ ...options, modifier });
+      return variable.declare({ ...options, modifier });
     }).flat();
   }
 }

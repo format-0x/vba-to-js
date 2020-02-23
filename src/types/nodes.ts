@@ -7,9 +7,7 @@ export enum BlockType {
   BlockStatement = 'BlockStatement',
 }
 
-export interface ValueParams {
-  type: VariableType;
-}
+export interface ValueParams {}
 
 export enum Modifier {
   Dim = 'DIM',
