@@ -3,7 +3,7 @@ import { Alternative, Grammar, Options } from './types';
 import {
   Assign,
   Block,
-  IdentifierLiteral,
+  IdentifierLiteral, Literal,
   NumberLiteral,
   Op,
   Root,
@@ -124,7 +124,10 @@ const grammar: Grammar = {
       return new VariableDeclaration($1);
     }),
     dispatch('Identifier AS TYPE', function () {
-      return new VariableDeclaration($1, $3);
+      return new VariableDeclaration(
+        $1,
+        new Value(new Literal<string>(''), { type: $3 })
+      );
     }),
   ],
   Operation: [

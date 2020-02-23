@@ -8,7 +8,7 @@ export enum BlockType {
 }
 
 export interface ValueParams {
-  type?: VariableType;
+  type: VariableType;
 }
 
 export enum Modifier {

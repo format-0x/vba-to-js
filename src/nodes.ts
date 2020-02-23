@@ -277,22 +277,23 @@ export class Root extends Base {
 Root.prototype.children = ['body'];
 
 export class Value extends Base {
-  constructor(public base: IdentifierLiteral, public params: ValueParams = {}) {
+  constructor(public base: Literal<any>, public params: ValueParams = { type: 'Variant' }) {
     super();
   }
 
   compileNode(options: Options = {}) {
     return this.base.compileToFragments(options);
   }
+
+  get type(): VariableType {
+    return this.params.type;
+  }
 }
 
 // TODO: add proper types
-export class Literal<T extends string> extends Base {
-  public value: T;
-
-  constructor(value: T) {
+export class Literal<T extends any> extends Base {
+  constructor(public value: T) {
     super();
-    this.value = value;
   }
 
   compileNode(options: Options): CodeFragment[] {
@@ -381,14 +382,28 @@ export class Code extends Base {
 Code.prototype.children = ['params', 'body'];
 
 export class VariableDeclaration extends Base {
-  constructor(private name: IdentifierLiteral, private type?: VariableType) {
+  constructor(
+    private name: IdentifierLiteral,
+    private initializer?: Value,
+  ) {
     super();
   }
 
   compileNode(options: Required<Pick<Options, 'scope' | 'modifier'>>): CodeFragment[] {
     const { scope, modifier } = options;
     // TODO: add proper implementation (modifier rules)
-    scope.add(this.name.value, this.type);
+    if (this.initializer) {
+      const { type } = this.initializer;
+      const [value] = this.initializer.compileToFragments(options);
+      // @ts-ignore
+      if (value == '') {
+        scope.add(this.name.value, type);
+      } else {
+        scope.add(this.name.value, type, value.toString());
+      }
+    } else {
+      scope.add(this.name.value);
+    }
 
     return [];
   }
