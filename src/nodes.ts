@@ -10,7 +10,7 @@ import {
   VariablePosition,
   VariableType,
   Modifier,
-  TYPES
+  TYPES, OptionsWithScope
 } from './types';
 
 export class Scope {
@@ -77,7 +77,7 @@ export class CodeFragment {
 }
 
 abstract class Base {
-  abstract compileNode(options: object): CodeFragment[];
+  abstract compileNode(options: Options): CodeFragment[];
   @addToPrototype<string[]>([]) // TODO: add proper types
   public children: string[] = []; // TODO: add proper types
   private location: TokenLocation = {} as TokenLocation; // TODO: add proper types
@@ -131,6 +131,25 @@ abstract class Base {
 
 Base.prototype.children = [];
 
+export class Return extends Base {
+  constructor(private expression?: Literal) {
+    super();
+  }
+
+  compileNode(options: Options): CodeFragment[] {
+    const ret = [this.makeCode('return')];
+
+    if (this.expression) {
+      const expr = this.expression.compileToFragments(options);
+      ret.push(this.makeCode(' '), ...expr);
+    }
+
+    ret.push(this.makeCode(';'));
+
+    return ret;
+  }
+}
+
 export class Block extends Base {
   public expressions: Base[];
   public isRootBlock: () => boolean = NO;
@@ -145,11 +164,11 @@ export class Block extends Base {
     this.expressions = nodes.flat(Infinity);
   }
 
-  compileRoot(options: Required<Pick<Options, 'scope'>>) {
+  compileRoot(options: OptionsWithScope) {
     return this.compileWithDeclarations(options);
   }
 
-  compileWithDeclarations(options: Required<Pick<Options, 'scope'>>) {
+  compileWithDeclarations(options: OptionsWithScope) {
     const { scope } = options;
     const fragments = [];
     const post = this.compileNode(options);
@@ -209,12 +228,16 @@ export class Block extends Base {
       if (node instanceof Block) {
         compiledNodes.push(node.compileNode(options));
       } else {
-        compiledNodes.push(node.compileToFragments(options));
+        const compiledNode = node.compileToFragments(options);
+
+        if (!(node instanceof VariableDeclarationList)) {
+          compiledNodes.push(compiledNode);
+        }
       }
     }
 
     if (!compiledNodes.length) {
-      return [this.makeCode('void 0')];
+      return new Return().compileToFragments(options);
     }
 
     return this.joinFragments(compiledNodes, '\n');
@@ -252,7 +275,7 @@ export class Root extends Base {
     this.body.isRootBlock = YES;
   }
 
-  compileNode(options: Required<Pick<Options, 'scope'>>): CodeFragment[] {
+  compileNode(options: OptionsWithScope): CodeFragment[] {
     this.initializeScope(options);
 
     const fragments: CodeFragment[] = this.body.compileRoot(options);
@@ -350,7 +373,7 @@ export class VariableDeclaration extends Base {
 }
 
 export class Parameter extends VariableDeclaration {
-  declare(options: Required<Pick<Options, 'scope'>>): void {
+  declare(options: OptionsWithScope): void {
     const { scope } = options;
     let value: string | undefined;
     // TODO: add proper implementation (modifier rules)
@@ -377,7 +400,8 @@ export class Code extends Base {
     return new Scope(parentScope, this.body, this);
   }
 
-  compileNode(options: Required<Pick<Options, 'scope'>>): CodeFragment[] {
+  compileNode(options: OptionsWithScope): CodeFragment[] {
+    options = { ...options };
     options.scope = this.makeScope(options.scope);
 
     const name = this.name.compileToFragments(options);
@@ -422,7 +446,7 @@ export class VariableDeclarationList extends Base {
     super();
   }
 
-  compileNode(options: Required<Pick<Options, 'scope'>>): CodeFragment[] {
+  compileNode(options: OptionsWithScope): CodeFragment[] {
     const { modifier } = this;
 
     this.variableList.forEach((variable) => {
@@ -440,7 +464,7 @@ export class Assign extends Base {
     super();
   }
 
-  compileNode(options: Required<Pick<Options, 'scope'>>): CodeFragment[] {
+  compileNode(options: OptionsWithScope): CodeFragment[] {
     const { scope } = options;
     const name = this.variable.base.value;
     const declared = scope.check(name);

@@ -69,7 +69,19 @@ const compile = (code: string, options: Options = {}) => {
   return fragmentsToString(fragments);
 };
 
-console.log(compile(`Dim a, b!, c$, d As String * 10
-  d = "test"
-  u = 42
-  Sub test(d As String = "s") Dim o, v! End Sub`));
+const code = `
+  Dim a, b$, c@, d As Currency
+  
+  b = "test"
+  e = 42
+  
+  Sub test(q As Integer = 1) Dim z As String * 30
+    z = "str"
+  End Sub
+  
+  Sub x() z = ""
+    e = 0
+  End Sub
+`;
+
+console.log(compile(code));

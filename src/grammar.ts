@@ -1,11 +1,10 @@
-// TODO: add proper types
 import { Alternative, Grammar, Options } from './types';
 import {
   Assign,
   Block, Code,
   IdentifierLiteral, Literal,
   NumberLiteral,
-  Op, Parameter,
+  Op, Parameter, Return,
   Root,
   StringLiteral, Type,
   Value,
@@ -60,7 +59,7 @@ const grammar: Grammar = {
     dispatch('Body TERMINATOR'),
   ],
   Line: [dispatch('Expression'), dispatch('Statement')],
-  Statement: [dispatch('VariableDeclaration')],
+  Statement: [dispatch('VariableDeclaration'), dispatch('Return')],
   Expression: [
     dispatch('Value'),
     dispatch('Code'),
@@ -120,8 +119,16 @@ const grammar: Grammar = {
       return new Value($1);
     }),
   ],
+  Return: [
+    dispatch('RETURN Expression', function () {
+      return new Return($2);
+    }),
+    dispatch('RETURN', function () {
+      return new Return();
+    }),
+  ],
   Code: [
-    dispatch('SUB_START Identifier PARAM_START ParamList PARAM_END Line SUB_END', function () {
+    dispatch('SUB_START Identifier PARAM_START ParamList PARAM_END Body SUB_END', function () {
       return new Code($2, $4, Block.wrap([$6]));
     }),
   ],

@@ -1,5 +1,4 @@
 import { Scope } from '../nodes';
-import { VariableType } from './patterns';
 
 export enum BlockType {
   RootBlock = 'Program',
@@ -23,3 +22,5 @@ export interface Options {
   makeReturn?: boolean;
   modifier?: Modifier;
 }
+
+export type OptionsWithScope = Required<Pick<Options, 'scope'>>;

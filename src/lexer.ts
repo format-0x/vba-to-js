@@ -1,5 +1,6 @@
 import { LexerOptions, Pos, ShorthandTypes, Token, TokenLocation, TokenOptions, TokenType, TYPES } from './types';
 import { COMPARE, IDENTIFIER, LOGICAL, MATH, MODIFIER, NEWLINE, NUMBER, OPERATOR, STRING, WHITESPACE } from './patterns';
+import { clean } from './util';
 
 export default class Lexer {
   private chunk: string = '';
@@ -70,10 +71,16 @@ export default class Lexer {
       this.tokens.pop();
 
       tag = 'SUB_END';
+    } else if (prev === 'EXIT' && id === 'Sub') {
+      this.tokens.pop();
+
+      tag = 'RETURN';
     } else if (id === 'Sub') {
       tag = 'SUB_START';
     } else if (id === 'End') {
       tag = 'END';
+    } else if (id === 'Exit') {
+      tag = 'EXIT';
     } else {
       tag = TokenType.Identifier;
     }
@@ -190,6 +197,7 @@ export default class Lexer {
   }
 
   tokenize(code: string, options: LexerOptions = {}): Token[] {
+    code = clean(code);
     this.lines = code.split(/(?<=\n)/);
 
     while ((this.chunk = code.slice(this.chunkOffset))) {

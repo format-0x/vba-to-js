@@ -24,3 +24,8 @@ export const fragmentsToString = (fragments: CodeFragment[], separator: string =
 
 export const YES = (): boolean => true;
 export const NO = (): boolean => false;
+
+// TODO: add proper implementation
+export const clean = (code: string): string => {
+  return code.trim();
+};
