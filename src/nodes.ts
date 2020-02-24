@@ -132,7 +132,7 @@ abstract class Base {
 Base.prototype.children = [];
 
 export class Block extends Base {
-  private expressions: Base[];
+  public expressions: Base[];
   public isRootBlock: () => boolean = NO;
   public isClassBody: () => boolean = NO;
 
@@ -145,35 +145,32 @@ export class Block extends Base {
     this.expressions = nodes.flat(Infinity);
   }
 
-  compileRoot(options: Options) {
+  compileRoot(options: Required<Pick<Options, 'scope'>>) {
     return this.compileWithDeclarations(options);
   }
 
-  compileWithDeclarations(options: Options) {
-    const post = this.compileNode(options);
+  compileWithDeclarations(options: Required<Pick<Options, 'scope'>>) {
     const { scope } = options;
     const fragments = [];
+    const post = this.compileNode(options);
+    const { variables } = scope;
 
-    if (scope?.expressions === this) {
-      const { variables } = scope;
+    if (variables.length) {
+      fragments.push(this.makeCode('var '));
 
-      if (variables.length) {
-        fragments.push(this.makeCode('var '));
+      variables.forEach(({ name, value, assigned }, i) => {
+        fragments.push(this.makeCode(name));
 
-        variables.forEach(({ name, value, assigned }, i) => {
-          fragments.push(this.makeCode(name));
+        if (assigned) {
+          fragments.push(this.makeCode(` = ${value}`));
+        }
 
-          if (assigned) {
-            fragments.push(this.makeCode(` = ${value}`));
-          }
+        if (i !== variables.length - 1) {
+          fragments.push(this.makeCode(', '));
+        }
+      });
 
-          if (i !== variables.length - 1) {
-            fragments.push(this.makeCode(', '));
-          }
-        });
-
-        fragments.push(this.makeCode(';\n'));
-      }
+      fragments.push(this.makeCode(';\n'));
     }
 
     return [...fragments, ...post];
@@ -208,7 +205,6 @@ export class Block extends Base {
 
   compileNode(options: Options = {}) {
     const compiledNodes: CodeFragment[][] = [];
-
     for (const node of this.expressions) {
       if (node instanceof Block) {
         compiledNodes.push(node.compileNode(options));
@@ -256,8 +252,9 @@ export class Root extends Base {
     this.body.isRootBlock = YES;
   }
 
-  compileNode(options: object): CodeFragment[] {
+  compileNode(options: Required<Pick<Options, 'scope'>>): CodeFragment[] {
     this.initializeScope(options);
+
     const fragments: CodeFragment[] = this.body.compileRoot(options);
 
     return [
@@ -329,10 +326,11 @@ export class VariableDeclaration extends Base {
     const { scope, modifier } = options;
     // TODO: add proper implementation (modifier rules)
     let value: string | undefined;
+
     if (this.initializer) {
       const [init] = this.initializer.compileToFragments(options);
 
-      [value] = init.toString();
+      value = init.toString();
     }
 
     scope.add(this.name.value, this.variableType.type, value);
@@ -359,7 +357,7 @@ export class Parameter extends VariableDeclaration {
     if (this.initializer) {
       const [init] = this.initializer.compileToFragments(options);
 
-      [value] = init.toString();
+      value = init.toString();
     }
 
     scope.add(this.name.value, this.variableType.type, value, 'Parameter');
@@ -427,9 +425,11 @@ export class VariableDeclarationList extends Base {
   compileNode(options: Required<Pick<Options, 'scope'>>): CodeFragment[] {
     const { modifier } = this;
 
-    return this.variableList.map((variable) => {
-      return variable.declare({ ...options, modifier });
-    }).flat();
+    this.variableList.forEach((variable) => {
+      variable.declare({ ...options, modifier });
+    });
+
+    return [];
   }
 }
 

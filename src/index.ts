@@ -70,6 +70,6 @@ const compile = (code: string, options: Options = {}) => {
 };
 
 console.log(compile(`Dim a, b!, c$, d As String * 10
-  Static x As String, n%
   d = "test"
-  u = 42`));
+  u = 42
+  Sub test(d As String = "s") Dim o, v! End Sub`));
