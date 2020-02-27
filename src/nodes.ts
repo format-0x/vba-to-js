@@ -222,7 +222,7 @@ export class Block extends Base {
     return !this.expressions.length;
   }
 
-  compileNode(options: Options = {}) {
+  compileNode(options: Options = {}): CodeFragment[] {
     const compiledNodes: CodeFragment[][] = [];
     for (const node of this.expressions) {
       if (node instanceof Block) {
@@ -369,6 +369,60 @@ export class VariableDeclaration extends Base {
     }
 
     return name;
+  }
+}
+
+export class If extends Base {
+  private isChain: boolean = false;
+
+  constructor(
+    private condition: Base,
+    private body: Block,
+    private elseBody?: Base | If,
+  ) {
+    super();
+  }
+
+  addElse(elseBody: Base): this {
+    if (this.isChain) {
+      (<If>this.elseBody).addElse(elseBody);
+    } else {
+      this.isChain = elseBody instanceof If;
+      this.elseBody = elseBody;
+    }
+
+    return this;
+  }
+
+  compileNode(options: Options): CodeFragment[] {
+    const condition = this.condition.compileToFragments(options);
+    const body = this.body.compileToFragments(options);
+    const ifPart: CodeFragment[] = [
+      this.makeCode('if ('),
+      ...condition,
+      this.makeCode(') {\n'),
+      ...body,
+      this.makeCode('\n}'),
+    ];
+
+    if (!this.elseBody) {
+      return ifPart;
+    }
+
+    const result = [...ifPart, this.makeCode(' else ')];
+    const elseBody = this.elseBody.compileToFragments(options);
+
+    if (this.isChain) {
+      result.push(...elseBody);
+    } else {
+      result.push(
+        this.makeCode('{\n'),
+        ...elseBody,
+        this.makeCode('\n}'),
+      );
+    }
+
+    return result;
   }
 }
 

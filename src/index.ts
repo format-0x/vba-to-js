@@ -75,13 +75,17 @@ const code = `
   b = "test"
   e = 42
   
-  Sub test(q As Integer = 1) Dim z As String * 30
+  Sub test(q As Integer = 1)
+    Dim z As String * 30
     z = "str"
   End Sub
   
-  Sub x() z = ""
+  Sub x()
+    z = ""
     e = 0
   End Sub
+
+  If e > 0 Then b = "test"
 `;
 
 console.log(compile(code));

@@ -71,6 +71,10 @@ export default class Lexer {
       this.tokens.pop();
 
       tag = 'SUB_END';
+    } else if (prev === 'END' && id === 'If') {
+      this.tokens.pop();
+
+      tag = 'IF_END';
     } else if (prev === 'EXIT' && id === 'Sub') {
       this.tokens.pop();
 
@@ -81,6 +85,14 @@ export default class Lexer {
       tag = 'END';
     } else if (id === 'Exit') {
       tag = 'EXIT';
+    } else if (id === 'If') {
+      tag = 'IF';
+    } else if (id === 'Then') {
+      tag = 'THEN';
+    } else if (id === 'ElseIf') {
+      tag = 'ELSE_IF';
+    } else if (id === 'Else') {
+      tag = 'ELSE';
     } else {
       tag = TokenType.Identifier;
     }

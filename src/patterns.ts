@@ -11,6 +11,9 @@ export const COMPARE = ['<>', '>', '<=', '>=', '<'];
 export const LOGICAL = ['imp', 'eqv', 'xor', 'or', 'and', 'not'];
 
 export const operators = [
+  ['right', 'RETURN'],
+  ['left', 'IF'],
+  ['left', 'ELSE', 'ELSE_IF'],
   ['left', 'LOGICAL'],
   ['left', 'COMPARE', '='],
   ['left', '&'],
@@ -19,5 +22,4 @@ export const operators = [
   ['left', '\\'],
   ['left', '*', '/'],
   ['left', '^'],
-  ['right', 'MODIFIER'],
 ];

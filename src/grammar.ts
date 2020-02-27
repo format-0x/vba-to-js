@@ -2,7 +2,7 @@ import { Alternative, Grammar, Options } from './types';
 import {
   Assign,
   Block, Code,
-  IdentifierLiteral, Literal,
+  IdentifierLiteral, If, Literal,
   NumberLiteral,
   Op, Parameter, Return,
   Root,
@@ -17,6 +17,7 @@ declare const $3: any;
 declare const $4: any;
 declare const $5: any;
 declare const $6: any;
+declare const $7: any;
 
 const dispatch = (pattern: string, actionFunc?: Function, options: Options = {}): Alternative => {
   let action: string;
@@ -59,12 +60,16 @@ const grammar: Grammar = {
     dispatch('Body TERMINATOR'),
   ],
   Line: [dispatch('Expression'), dispatch('Statement')],
-  Statement: [dispatch('VariableDeclaration'), dispatch('Return')],
+  Statement: [
+    dispatch('VariableDeclaration'),
+    dispatch('Return'),
+    dispatch('If'),
+  ],
   Expression: [
     dispatch('Value'),
     dispatch('Code'),
     dispatch('Operation'),
-    dispatch('Assign')
+    dispatch('Assign'),
   ],
   Identifier: [
     dispatch('IDENTIFIER', function () {
@@ -128,8 +133,8 @@ const grammar: Grammar = {
     }),
   ],
   Code: [
-    dispatch('SUB_START Identifier PARAM_START ParamList PARAM_END Body SUB_END', function () {
-      return new Code($2, $4, Block.wrap([$6]));
+    dispatch('SUB_START Identifier PARAM_START ParamList PARAM_END TERMINATOR Body SUB_END', function () {
+      return new Code($2, $4, Block.wrap([$7]));
     }),
   ],
   Assignable: [
@@ -163,6 +168,20 @@ const grammar: Grammar = {
     }),
     dispatch('Identifier AS TYPE SIZE NUMBER', function () {
       return new VariableDeclaration($1, new Type($3, { size: $5 }));
+    }),
+  ],
+  IfBlock: [
+    dispatch('IF Expression THEN Body', function () {
+      return new If($2, $4);
+    }),
+    dispatch('IfBlock ELSE_IF Expression THEN Body', function () {
+      return $1.addElse(new If($3, $5));
+    }),
+  ],
+  If: [
+    dispatch('IfBlock'),
+    dispatch('IfBlock ELSE Body IF_END', function () {
+      $1.addElse($3);
     }),
   ],
   Operation: [
