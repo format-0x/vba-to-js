@@ -67,6 +67,8 @@ export default class Lexer {
       }
 
       tag = TokenType.Type;
+    } else if (LOGICAL.includes(id)) {
+      tag = 'LOGICAL';
     } else if (prev === 'END' && id === 'Sub') {
       this.tokens.pop();
 
@@ -141,8 +143,6 @@ export default class Lexer {
       tag = 'SIZE';
     } else if (COMPARE.includes(value)) {
       tag = 'COMPARE';
-    } else if (LOGICAL.includes(value)) {
-      tag = 'LOGICAL';
     }
     // TODO: add proper implementation
     if (value === ';') {
