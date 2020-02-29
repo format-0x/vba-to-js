@@ -34,7 +34,7 @@ const dispatch = (pattern: string, actionFunc?: Function, options: Options = {})
       action = `return ${action}`;
     }
   } else {
-    action = '$$ = $1;';
+    action = '$$ = $1';
   }
 
   return [pattern, action, options];
@@ -57,7 +57,9 @@ const grammar: Grammar = {
       $1.push($3);
       return $1;
     }),
-    dispatch('Body TERMINATOR'),
+    dispatch('Body TERMINATOR', function () {
+      return $1;
+    }),
   ],
   Line: [dispatch('Expression'), dispatch('Statement')],
   Statement: [
@@ -92,9 +94,6 @@ const grammar: Grammar = {
   Assign: [
     dispatch('Assignable = Expression', function () {
       return new Assign($1, $3);
-    }),
-    dispatch('Assignable = TERMINATOR Expression', function () {
-      return new Assign($1, $4);
     }),
   ],
   ParamList: [
@@ -133,7 +132,7 @@ const grammar: Grammar = {
     }),
   ],
   Code: [
-    dispatch('SUB_START Identifier PARAM_START ParamList PARAM_END TERMINATOR Body SUB_END', function () {
+    dispatch('SUB_START Identifier PARAM_START ParamList PARAM_END TERMINATOR Body TERMINATOR SUB_END', function () {
       return new Code($2, $4, Block.wrap([$7]));
     }),
   ],
@@ -170,18 +169,48 @@ const grammar: Grammar = {
       return new VariableDeclaration($1, new Type($3, { size: $5 }));
     }),
   ],
-  IfBlock: [
-    dispatch('IF Expression THEN Body', function () {
-      return new If($2, $4);
+  If: [
+    dispatch('IfLine'),
+    dispatch('IfBlock'),
+  ],
+  IfLine: [
+    dispatch('IF IfLineClause', function () {
+      return $2;
     }),
-    dispatch('IfBlock ELSE_IF Expression THEN Body', function () {
-      return $1.addElse(new If($3, $5));
+    dispatch('IF IfLineClause ELSE Block', function () {
+      return $2.addElse($4);
     }),
   ],
-  If: [
-    dispatch('IfBlock'),
-    dispatch('IfBlock ELSE Body IF_END', function () {
-      $1.addElse($3);
+  IfBlock: [
+    dispatch('IF IfBlockClause IF_END', function () {
+      return $2;
+    }),
+    dispatch('IF IfBlockClause ElseIf IF_END', function () {
+      return $2.addElse($3);
+    }),
+    dispatch('IF IfBlockClause ElseIf ELSE TERMINATOR Body TERMINATOR IF_END', function () {
+      return $2.addElse($3).addElse($6);
+    }),
+    dispatch('IF IfBlockClause ELSE TERMINATOR Body TERMINATOR IF_END', function () {
+      return $2.addElse($5);
+    }),
+  ],
+  IfLineClause: [
+    dispatch('Expression THEN Line', function () {
+      return new If($1, $3);
+    }),
+  ],
+  IfBlockClause: [
+    dispatch('Expression THEN TERMINATOR Body TERMINATOR', function () {
+      return new If($1, $4);
+    }),
+  ],
+  ElseIf: [
+    dispatch('ELSE_IF IfBlockClause', function () {
+      return $2;
+    }),
+    dispatch('ElseIf ELSE_IF IfBlockClause', function () {
+      return $1.addElse($3);
     }),
   ],
   Operation: [

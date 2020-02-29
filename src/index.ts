@@ -69,23 +69,6 @@ const compile = (code: string, options: Options = {}) => {
   return fragmentsToString(fragments);
 };
 
-const code = `
-  Dim a, b$, c@, d As Currency
-  
-  b = "test"
-  e = 42
-  
-  Sub test(q As Integer = 1)
-    Dim z As String * 30
-    z = "str"
-  End Sub
-  
-  Sub x()
-    z = ""
-    e = 0
-  End Sub
-
-  If e > 0 Then b = "test"
-`;
+const code = '';
 
 console.log(compile(code));

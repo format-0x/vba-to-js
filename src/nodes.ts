@@ -224,6 +224,7 @@ export class Block extends Base {
 
   compileNode(options: Options = {}): CodeFragment[] {
     const compiledNodes: CodeFragment[][] = [];
+
     for (const node of this.expressions) {
       if (node instanceof Block) {
         compiledNodes.push(node.compileNode(options));
