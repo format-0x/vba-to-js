@@ -72,6 +72,7 @@ const grammar: Grammar = {
     dispatch('Code'),
     dispatch('Operation'),
     dispatch('Assign'),
+    dispatch('Invocation'),
   ],
   Identifier: [
     dispatch('IDENTIFIER', function () {
@@ -135,6 +136,9 @@ const grammar: Grammar = {
     dispatch('SUB_START Identifier PARAM_START ParamList PARAM_END TERMINATOR Body TERMINATOR SUB_END', function () {
       return new Code($2, $4, Block.wrap([$7]));
     }),
+    dispatch('FUNCTION_START Identifier PARAM_START ParamList PARAM_END TERMINATOR Body TERMINATOR FUNCTION_END', function () {
+      return new Code($2, $4, Block.wrap([$7]));
+    }),
   ],
   Assignable: [
     dispatch('SimpleAssignable'),
@@ -144,13 +148,13 @@ const grammar: Grammar = {
     dispatch('Literal', function () {
       return new Value($1);
     }),
-    dispatch('Invocation', function () {
-      return new Value($1);
-    }),
   ],
   Invocation: [
     dispatch('Value Args', function () {
       return new Call($1, $2);
+    }),
+    dispatch('CALL Value Args', function () {
+      return new Call($2, $3);
     }),
   ],
   Args: [

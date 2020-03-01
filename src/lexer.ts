@@ -74,6 +74,10 @@ export default class Lexer {
       this.tokens.pop();
 
       tag = 'SUB_END';
+    } else if (prev === 'END' && id === 'Function') {
+      this.tokens.pop();
+
+      tag = 'FUNCTION_END';
     } else if (prev === 'END' && id === 'If') {
       this.tokens.pop();
 
@@ -84,6 +88,8 @@ export default class Lexer {
       tag = 'RETURN';
     } else if (id === 'Sub') {
       tag = 'SUB_START';
+    } else if (id === 'Function') {
+      tag = 'FUNCTION_START';
     } else if (id === 'End') {
       tag = 'END';
     } else if (id === 'Exit') {
