@@ -1,7 +1,7 @@
 import { Alternative, Grammar, Options } from './types';
 import {
   Assign,
-  Block, Code,
+  Block, Call, Code,
   IdentifierLiteral, If, Literal,
   NumberLiteral,
   Op, Parameter, Return,
@@ -144,6 +144,31 @@ const grammar: Grammar = {
     dispatch('Literal', function () {
       return new Value($1);
     }),
+    dispatch('Invocation', function () {
+      return new Value($1);
+    }),
+  ],
+  Invocation: [
+    dispatch('Value Args', function () {
+      return new Call($1, $2);
+    }),
+  ],
+  Args: [
+    dispatch('CALL_START CALL_END', function () {
+      return [];
+    }),
+    dispatch('CALL_START ArgList CALL_END', function () {
+      return [].concat($2);
+    }),
+  ],
+  ArgList: [
+    dispatch('Arg'),
+    dispatch('ArgList , Arg', function () {
+      return [].concat($1, $3);
+    }),
+  ],
+  Arg: [
+    dispatch('Expression'),
   ],
   VariableDeclaration: [
     dispatch('MODIFIER VariableList', function () {
@@ -177,7 +202,7 @@ const grammar: Grammar = {
     dispatch('IF IfLineClause', function () {
       return $2;
     }),
-    dispatch('IF IfLineClause ELSE Block', function () {
+    dispatch('IF IfLineClause ELSE Line', function () {
       return $2.addElse($4);
     }),
   ],

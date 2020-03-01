@@ -9,6 +9,7 @@ export default class Lexer {
   private chunkOffset: number = 0;
   private lines: string[] = [];
   private tokens: Token[] = [];
+  private referencedVariables: string[] = [];
 
   getPos(offset: number): Pos {
     let index = offset, lineIndex = 0;
@@ -95,10 +96,12 @@ export default class Lexer {
       tag = 'ELSE_IF';
     } else if (id === 'Else') {
       tag = 'ELSE';
+    } else if (id === 'Call') {
+      tag = 'CALL';
     } else {
       tag = TokenType.Identifier;
     }
-
+    
     const token = this.makeToken(tag, id);
 
     this.tokens.push(token);
@@ -136,7 +139,7 @@ export default class Lexer {
 
     let tag = value;
     const [prev] = this.prev();
-
+    // TODO: add proper implementation
     if (value === '=' && !['IDENTIFIER', 'TYPE'].includes(prev)) {
       tag = 'COMPARE';
     } else if (value === '*' && prev === TokenType.Type) {
@@ -145,6 +148,7 @@ export default class Lexer {
       tag = 'COMPARE';
     }
     // TODO: add proper implementation
+
     if (value === ';') {
       tag = 'TERMINATOR';
     } else if (value === '(') {

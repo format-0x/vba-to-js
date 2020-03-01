@@ -1,5 +1,5 @@
 export const IDENTIFIER = /^(?!\d)((?:\w+))([%&#$!@])?/;
-export const WHITESPACE = /^\s+/;
+export const WHITESPACE = /^\s/;
 export const NEWLINE = /^\n/;
 export const STRING = /^(["'])(.*?)\1/;
 export const NUMBER = /^\d+/;
@@ -22,4 +22,5 @@ export const operators = [
   ['left', '\\'],
   ['left', '*', '/'],
   ['left', '^'],
+  ['left', 'CALL'],
 ];

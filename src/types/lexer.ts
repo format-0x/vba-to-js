@@ -27,4 +27,6 @@ export enum TokenType {
   Modifier = 'MODIFIER',
   As = 'AS',
   Type = 'TYPE',
+  CallStart = 'CALL_START',
+  CallEnd = 'CALL_END',
 }

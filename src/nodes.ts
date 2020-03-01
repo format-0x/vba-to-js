@@ -131,6 +131,28 @@ abstract class Base {
 
 Base.prototype.children = [];
 
+export class Call extends Base {
+  constructor(private variable: Value, private args: Base[] = []) {
+    super();
+  }
+
+  compileNode(options: Options): CodeFragment[] {
+    const args = this.args.reduce((acc, arg) => {
+      return [...acc, arg.compileToFragments(options)];
+    }, <CodeFragment[][]>[]);
+    const compiledArgs = this.joinFragments(args, ', ');
+
+    return [
+      ...this.variable.compileToFragments(options),
+      this.makeCode('('),
+      ...compiledArgs,
+      this.makeCode(')'),
+    ];
+  }
+}
+
+Base.prototype.children = ['variable', 'args'];
+
 export class Return extends Base {
   constructor(private expression?: Literal) {
     super();
