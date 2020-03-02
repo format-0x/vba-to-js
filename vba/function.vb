@@ -1,7 +1,6 @@
-Function test(A As Integer = 0, B)
-  Private C
-  If B Then Exit Function Else C = A * A
+Function Factorial(N As Integer)
+  If N > 1 Then Factorial = N * Factorial(N - 1) Else Factorial = N
 End Function
 
-test(3 * 10, 0)
-Call test(3 * 10, 0)
+Factorial(3)
+Call Factorial(13)

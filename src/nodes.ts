@@ -10,7 +10,7 @@ import {
   VariablePosition,
   VariableType,
   Modifier,
-  TYPES, OptionsWithScope
+  OptionsWithScope, Kind
 } from './types';
 
 export class Scope {
@@ -23,6 +23,12 @@ export class Scope {
     private method: Code | null,
     private referencedVariables: string[] = [],
   ) {}
+
+  propagate(): Scope {
+    if (!this.parent) return this;
+
+    return this.parent.propagate();
+  }
 
   add(
     name: string,
@@ -154,7 +160,7 @@ export class Call extends Base {
 Base.prototype.children = ['variable', 'args'];
 
 export class Return extends Base {
-  constructor(private expression?: Literal) {
+  constructor(private expression?: Value) {
     super();
   }
 
@@ -480,6 +486,12 @@ export class Code extends Base {
   compileNode(options: OptionsWithScope): CodeFragment[] {
     options = { ...options };
     options.scope = this.makeScope(options.scope);
+    options.scope.add(
+      this.name.value,
+      'Object',
+      null,
+      'Function',
+    );
 
     const name = this.name.compileToFragments(options);
     const output: CodeFragment[] = [this.makeCode('function '), ...name, this.makeCode('(')];
@@ -550,10 +562,16 @@ export class Assign extends Base {
       scope.add(name);
     }
 
-    const identifier = this.variable.compileToFragments(options);
-    const val = this.value.compileToFragments(options);
+    const { kind } = scope.find(name) || {};
 
-    return [...identifier, this.makeCode('='), ...val];
+    if (kind === 'Function') {
+      return new Return(this.value).compileToFragments(options);
+    } else {
+      const identifier = this.variable.compileToFragments(options);
+      const val = this.value.compileToFragments(options);
+
+      return [...identifier, this.makeCode('='), ...val];
+    }
   }
 }
 

@@ -18,6 +18,7 @@ export enum TYPES {
 export enum Kind {
   Parameter,
   Variable,
+  Function,
 }
 
 export enum ShorthandTypes {
