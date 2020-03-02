@@ -33,7 +33,7 @@ const dispatch = (pattern: string, actionFunc?: Function, options: Options = {})
       action = `return ${action}`;
     }
   } else {
-    action = '$$ = $1';
+    action = '$$ = $1;';
   }
 
   return [pattern, action, options];
@@ -97,7 +97,7 @@ const grammar: Grammar = {
     }),
   ],
   Params: [
-    dispatch('PARAM_START ParamList PARAM_END', function () {
+    dispatch('( ParamList )', function () {
       return $2;
     }),
   ],
@@ -163,10 +163,10 @@ const grammar: Grammar = {
     }),
   ],
   Args: [
-    dispatch('CALL_START CALL_END', function () {
+    dispatch('( )', function () {
       return [];
     }),
-    dispatch('CALL_START ArgList CALL_END', function () {
+    dispatch('( ArgList )', function () {
       return [].concat($2);
     }),
   ],

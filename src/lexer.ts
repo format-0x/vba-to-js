@@ -10,7 +10,6 @@ export default class Lexer {
   private lines: string[] = [];
   private tokens: Token[] = [];
   private referencedVariables: string[] = [];
-  private declaration: boolean = false;
 
   getPos(offset: number): Pos {
     let index = offset, lineIndex = 0;
@@ -158,14 +157,6 @@ export default class Lexer {
 
     if (value === ';') {
       tag = 'TERMINATOR';
-    } else if (value === '(') {
-      if (this.declaration) {
-        tag = 'PARAM_START';
-      }
-    } else if (value === ')') {
-      if (this.declaration) {
-        tag = 'PARAM_END';
-      }
     }
 
     this.tokens.push(this.makeToken(tag, value));
