@@ -12,10 +12,11 @@ export const LOGICAL = ['imp', 'eqv', 'xor', 'or', 'and', 'not'];
 
 export const operators = [
   ['right', 'RETURN'],
+  ['left', '='],
   ['left', 'IF'],
   ['left', 'ELSE', 'ELSE_IF'],
   ['left', 'LOGICAL'],
-  ['left', 'COMPARE', '='],
+  ['left', 'COMPARE'],
   ['left', '&'],
   ['left', '-', '+'],
   ['left', '%'],

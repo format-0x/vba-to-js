@@ -1,3 +1,4 @@
+import { promises } from 'fs';
 import Lexer from './lexer';
 import bnf from './grammar';
 import * as nodes from './nodes';
@@ -49,7 +50,8 @@ parser.lexer = {
 
 const lexer = new Lexer();
 
-const compile = (code: string, options: Options = {}) => {
+const compile = async (path: string, options: Options = {}) => {
+  const code = await promises.readFile(path, 'utf8');
   options = { ...options };
 
   const tokens: Token[] = lexer.tokenize(code, options);
@@ -69,6 +71,4 @@ const compile = (code: string, options: Options = {}) => {
   return fragmentsToString(fragments);
 };
 
-const code = '';
-
-console.log(compile(code));
+compile('vba/function.vb').then(console.log);

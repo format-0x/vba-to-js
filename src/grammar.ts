@@ -97,6 +97,11 @@ const grammar: Grammar = {
       return new Assign($1, $3);
     }),
   ],
+  Params: [
+    dispatch('PARAM_START ParamList PARAM_END', function () {
+      return $2;
+    }),
+  ],
   ParamList: [
     dispatch('', function () {
       return [];
@@ -133,11 +138,11 @@ const grammar: Grammar = {
     }),
   ],
   Code: [
-    dispatch('SUB_START Identifier PARAM_START ParamList PARAM_END TERMINATOR Body TERMINATOR SUB_END', function () {
-      return new Code($2, $4, Block.wrap([$7]));
+    dispatch('SUB_START Identifier Params TERMINATOR Body TERMINATOR SUB_END', function () {
+      return new Code($2, $3, Block.wrap([$5]));
     }),
-    dispatch('FUNCTION_START Identifier PARAM_START ParamList PARAM_END TERMINATOR Body TERMINATOR FUNCTION_END', function () {
-      return new Code($2, $4, Block.wrap([$7]));
+    dispatch('FUNCTION_START Identifier Params TERMINATOR Body TERMINATOR FUNCTION_END', function () {
+      return new Code($2, $3, Block.wrap([$5]));
     }),
   ],
   Assignable: [

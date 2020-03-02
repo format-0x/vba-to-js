@@ -27,5 +27,8 @@ export const NO = (): boolean => false;
 
 // TODO: add proper implementation
 export const clean = (code: string): string => {
-  return code.trim().replace(/\n+/g, '\n');
+  return code
+    .replace(/'.*$/gm, '')
+    .replace(/\n+/g, '\n')
+    .trim();
 };
