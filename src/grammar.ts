@@ -4,7 +4,7 @@ import {
   Block, Call, Code,
   IdentifierLiteral, If, Literal,
   NumberLiteral,
-  Op, Parameter, Return,
+  Op, Parameter, Parens, Return,
   Root,
   StringLiteral, Type,
   Value,
@@ -17,7 +17,6 @@ declare const $3: any;
 declare const $4: any;
 declare const $5: any;
 declare const $6: any;
-declare const $7: any;
 
 const dispatch = (pattern: string, actionFunc?: Function, options: Options = {}): Alternative => {
   let action: string;
@@ -150,6 +149,7 @@ const grammar: Grammar = {
   ],
   Value: [
     dispatch('Assignable'),
+    dispatch('Parenthetical'),
     dispatch('Literal', function () {
       return new Value($1);
     }),
@@ -178,6 +178,11 @@ const grammar: Grammar = {
   ],
   Arg: [
     dispatch('Expression'),
+  ],
+  Parenthetical: [
+    dispatch('( Operation )', function () {
+      return new Parens($2);
+    }),
   ],
   VariableDeclaration: [
     dispatch('MODIFIER VariableList', function () {

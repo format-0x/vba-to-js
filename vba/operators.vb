@@ -2,7 +2,7 @@ Dim A As Integer, B As Integer, C As Integer
 Dim D As Boolean
 
 ' math
-C = A + B * B - A / C
+C = (A + B) * B - A / C
 C = A % B \ A ^ C
 
 ' comparison

@@ -24,4 +24,5 @@ export const operators = [
   ['left', '*', '/'],
   ['left', '^'],
   ['left', 'CALL'],
+  ['left', '(', ')'],
 ];

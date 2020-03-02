@@ -558,3 +558,13 @@ export class Assign extends Base {
 }
 
 Assign.prototype.children = ['variable', 'value'];
+
+export class Parens extends Base {
+  constructor(private body: Base) {
+    super();
+  }
+
+  compileNode(options: Options): CodeFragment[] {
+    return this.wrapInParentheses(this.body.compileToFragments(options));
+  }
+}
