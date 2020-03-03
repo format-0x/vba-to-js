@@ -126,6 +126,10 @@ abstract class Base {
     return {};
   }
 
+  invert(): Op {
+    return new Op('!', this);
+  }
+
   makeCode(code: Function | string): CodeFragment {
     return new CodeFragment(code);
   }
@@ -175,6 +179,12 @@ export class Return extends Base {
     ret.push(this.makeCode(';'));
 
     return ret;
+  }
+}
+
+export class Break extends Base {
+  compileNode(options: Options): CodeFragment[] {
+    return [this.makeCode('break;')];
   }
 }
 
@@ -278,8 +288,8 @@ Block.prototype.children = ['expressions'];
 export class Op extends Base {
   constructor(
     private operator: string,
-    private leftHandSide: Literal, // TODO: add proper types
-    private rightHandSide: Literal, // TODO: add proper types
+    private leftHandSide: Base, // TODO: add proper types
+    private rightHandSide?: Base, // TODO: add proper types
   ) {
     super();
   }
@@ -290,7 +300,8 @@ export class Op extends Base {
 
   compileNode(options: Options): CodeFragment[] {
     const lhs = this.leftHandSide.compileToFragments(options);
-    const rhs = this.rightHandSide.compileToFragments(options);
+    // TODO: add proper implementation
+    const rhs = this.rightHandSide?.compileToFragments(options) || [];
     return this.wrapInParentheses([...lhs, this.makeCode(this.operator), ...rhs]);
   }
 }
@@ -584,5 +595,36 @@ export class Parens extends Base {
 
   compileNode(options: Options): CodeFragment[] {
     return this.wrapInParentheses(this.body.compileToFragments(options));
+  }
+}
+
+export class While extends Base {
+  constructor(
+    private condition: Base,
+    private body: Base,
+    private post: boolean = false,
+    private inverted: boolean = false,
+  ) {
+    super();
+
+    if (inverted) {
+      this.condition = condition.invert();
+    }
+  }
+
+  compileNode(options: Options): CodeFragment[] {
+    const result: CodeFragment[][] = [];
+    const body = this.body.compileToFragments(options);
+    const condition = this.condition.compileToFragments(options);
+
+    result.push([this.makeCode('while ('), ...condition, this.makeCode(')')]);
+    result.push([this.makeCode('{\n'), ...body, this.makeCode('\n}')]);
+
+    if (this.post) {
+      result.push([this.makeCode('do')]);
+      result.reverse();
+    }
+
+    return result.flat();
   }
 }

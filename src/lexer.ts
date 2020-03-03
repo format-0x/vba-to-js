@@ -82,12 +82,24 @@ export default class Lexer {
       this.tokens.pop();
 
       tag = 'IF_END';
+    } else if (prev === 'EXIT' && id === 'Do') {
+      this.tokens.pop();
+
+      tag = 'BREAK';
     } else if (prev === 'EXIT' && (id === 'Sub' || id === 'Function')) {
       this.tokens.pop();
 
       tag = 'RETURN';
     } else if (id === 'Sub') {
       tag = 'SUB_START';
+    } else if (id === 'Do') {
+      tag = 'DO';
+    } else if (id === 'Loop') {
+      tag = 'LOOP';
+    } else if (id === 'While') {
+      tag = 'WHILE';
+    } else if (id === 'Until') {
+      tag = 'UNTIL';
     } else if (id === 'Function') {
       tag = 'FUNCTION_START';
     } else if (id === 'End') {

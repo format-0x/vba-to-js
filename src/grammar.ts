@@ -1,14 +1,14 @@
 import { Alternative, Grammar, Options } from './types';
 import {
   Assign,
-  Block, Call, Code,
+  Block, Break, Call, Code,
   IdentifierLiteral, If, Literal,
   NumberLiteral,
   Op, Parameter, Parens, Return,
   Root,
   StringLiteral, Type,
   Value,
-  VariableDeclaration, VariableDeclarationList
+  VariableDeclaration, VariableDeclarationList, While
 } from './nodes';
 
 declare const $1: any;
@@ -65,6 +65,9 @@ const grammar: Grammar = {
     dispatch('VariableDeclaration'),
     dispatch('Return'),
     dispatch('If'),
+    dispatch('PostWhile'),
+    dispatch('PreWhile'),
+    dispatch('Break'),
   ],
   Expression: [
     dispatch('Value'),
@@ -126,6 +129,11 @@ const grammar: Grammar = {
   SimpleAssignable: [
     dispatch('Identifier', function () {
       return new Value($1);
+    }),
+  ],
+  Break: [
+    dispatch('BREAK', function () {
+      return new Break();
     }),
   ],
   Return: [
@@ -206,6 +214,27 @@ const grammar: Grammar = {
     }),
     dispatch('Identifier AS TYPE SIZE NUMBER', function () {
       return new VariableDeclaration($1, new Type($3, { size: $5 }));
+    }),
+  ],
+  PostWhile: [
+    dispatch('DO TERMINATOR WhileBody WHILE Expression', function () {
+      return new While($5, $3, true);
+    }),
+    dispatch('DO TERMINATOR WhileBody UNTIL Expression', function () {
+      return new While($5, $3, true, true);
+    }),
+  ],
+  PreWhile: [
+    dispatch('DO WHILE Expression TERMINATOR WhileBody', function () {
+      return new While($3, $5);
+    }),
+    dispatch('DO UNTIL Expression TERMINATOR WhileBody', function () {
+      return new While($3, $5, false, true);
+    }),
+  ],
+  WhileBody: [
+    dispatch('Body TERMINATOR LOOP', function () {
+      return $1;
     }),
   ],
   If: [
