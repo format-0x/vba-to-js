@@ -48,11 +48,6 @@ const grammar: Grammar = {
       return new Root($1);
     }, { makeReturn: true }),
   ],
-  Block: [
-    dispatch('Body TERMINATOR', function () {
-      return $2;
-    }),
-  ],
   Body: [
     dispatch('Line', function () {
       return Block.wrap([$1]);

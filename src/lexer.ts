@@ -179,7 +179,7 @@ export default class Lexer {
     if (value === ':') {
       tag = 'TERMINATOR';
     }
-    // COLON_EQUAL
+
     this.tokens.push(this.makeToken(tag, value));
 
     return value.length;
