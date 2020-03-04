@@ -1,7 +1,6 @@
 Dim A As Integer, B As Integer
 
-A = 0
-B = 10
+A = 0 : B = 10
 
 ' pre
 Do While A < B
@@ -24,8 +23,17 @@ Loop Until A > B
 ' nested mixed
 Do While A < B
   Do
-    If A % 2 Then Call Factorial(A) Else Exit Do
+    If A Mod 2 Then Call Factorial(A) Else Exit Do
     A = A + 1
   Loop Until A > B
   If A < 0 Then Exit Do
 Loop
+
+' wend
+While A < B
+  If A Mod 2 Then Call Factorial(A) Else Exit Do
+  A = A + 1
+  While A Mod 2
+    A = A + 1
+  Wend
+Wend

@@ -48,15 +48,17 @@ const grammar: Grammar = {
       return new Root($1);
     }, { makeReturn: true }),
   ],
+  Block: [
+    dispatch('Body TERMINATOR', function () {
+      return $2;
+    }),
+  ],
   Body: [
     dispatch('Line', function () {
       return Block.wrap([$1]);
     }),
     dispatch('Body TERMINATOR Line', function () {
       $1.push($3);
-      return $1;
-    }),
-    dispatch('Body TERMINATOR', function () {
       return $1;
     }),
   ],
@@ -67,6 +69,7 @@ const grammar: Grammar = {
     dispatch('If'),
     dispatch('PostWhile'),
     dispatch('PreWhile'),
+    dispatch('Wend'),
     dispatch('Break'),
   ],
   Expression: [
@@ -216,6 +219,11 @@ const grammar: Grammar = {
       return new VariableDeclaration($1, new Type($3, { size: $5 }));
     }),
   ],
+  Wend: [
+    dispatch('WHILE Expression TERMINATOR Body TERMINATOR WEND', function () {
+      return new While($2, $4);
+    }),
+  ],
   PostWhile: [
     dispatch('DO TERMINATOR WhileBody WHILE Expression', function () {
       return new While($5, $3, true);
@@ -291,7 +299,7 @@ const grammar: Grammar = {
     dispatch('Expression - Expression', function () {
       return new Op('-', $1, $3);
     }),
-    dispatch('Expression % Expression', function () {
+    dispatch('Expression MOD Expression', function () {
       return new Op('%', $1, $3);
     }),
     dispatch('Expression \\ Expression', function () {

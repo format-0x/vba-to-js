@@ -53,8 +53,13 @@ export default class Lexer {
 
     if (shorthand) {
       this.tokens.push(this.makeToken(TokenType.Identifier, id));
-      this.tokens.push(this.makeToken(TokenType.As, 'As'));
-      this.tokens.push(this.makeToken(TokenType.Type, ShorthandTypes[<keyof typeof ShorthandTypes>shorthand]));
+
+      if (shorthand === ':=') {
+        this.tokens.push(this.makeToken('=', '='));
+      } else {
+        this.tokens.push(this.makeToken(TokenType.As, 'As'));
+        this.tokens.push(this.makeToken(TokenType.Type, ShorthandTypes[<keyof typeof ShorthandTypes>shorthand]));
+      }
 
       return input.length;
     }
@@ -100,6 +105,8 @@ export default class Lexer {
       tag = 'WHILE';
     } else if (id === 'Until') {
       tag = 'UNTIL';
+    } else if (id === 'Wend') {
+      tag = 'WEND';
     } else if (id === 'Function') {
       tag = 'FUNCTION_START';
     } else if (id === 'End') {
@@ -114,6 +121,8 @@ export default class Lexer {
       tag = 'ELSE_IF';
     } else if (id === 'Else') {
       tag = 'ELSE';
+    } else if (id === 'Mod') {
+      tag = 'MOD';
     } else if (id === 'Call') {
       tag = 'CALL';
     } else {
@@ -167,10 +176,10 @@ export default class Lexer {
     }
     // TODO: add proper implementation
 
-    if (value === ';') {
+    if (value === ':') {
       tag = 'TERMINATOR';
     }
-
+    // COLON_EQUAL
     this.tokens.push(this.makeToken(tag, value));
 
     return value.length;

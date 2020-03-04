@@ -294,15 +294,17 @@ export class Op extends Base {
     super();
   }
 
-  isUnary() {
-    return !this.rightHandSide;
-  }
-
   compileNode(options: Options): CodeFragment[] {
     const lhs = this.leftHandSide.compileToFragments(options);
-    // TODO: add proper implementation
-    const rhs = this.rightHandSide?.compileToFragments(options) || [];
-    return this.wrapInParentheses([...lhs, this.makeCode(this.operator), ...rhs]);
+    const result: CodeFragment[][] = [lhs, [this.makeCode(this.operator)]];
+
+    if (this.rightHandSide) {
+      result.push(this.rightHandSide.compileToFragments(options));
+    } else {
+      result.reverse();
+    }
+
+    return this.wrapInParentheses(result.flat());
   }
 }
 

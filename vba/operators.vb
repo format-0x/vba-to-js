@@ -3,11 +3,11 @@ Dim D As Boolean
 
 ' math
 C = (A + B) * B - A / C
-C = A % B \ A ^ C
+C = A Mod B \ A ^ C
 
 ' comparison
 D = C <> B > A <= A >= B < C
 
 ' logical
-D = A imp B eqv C
-D = A and B or C xor D
+D = A Imp B Eqv C
+D = A And B Or C Xor D

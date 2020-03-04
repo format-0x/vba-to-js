@@ -16,10 +16,10 @@ If A > 0 Then
 ElseIf A < 0 Then
   If B < 0 Then
     B = 3
-  ElseIf B and 0 Then
+  ElseIf B And 0 Then
     B = 2
   Else
-    If B or A Then
+    If B Or A Then
       A = 0
     End If
   End If
