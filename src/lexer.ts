@@ -79,6 +79,10 @@ export default class Lexer {
       this.tokens.pop();
 
       tag = 'SUB_END';
+    } else if (prev === 'END' && id === 'Select') {
+      this.tokens.pop();
+
+      tag = 'SELECT_END';
     } else if (prev === 'END' && id === 'Function') {
       this.tokens.pop();
 
@@ -87,6 +91,10 @@ export default class Lexer {
       this.tokens.pop();
 
       tag = 'IF_END';
+    } else if (prev === 'CASE' && id === 'Else') {
+      this.tokens.pop();
+
+      tag = 'DEFAULT_CASE';
     } else if (prev === 'EXIT' && (id === 'Do' || id === 'For')) {
       this.tokens.pop();
 
@@ -97,6 +105,8 @@ export default class Lexer {
       tag = 'RETURN';
     } else if (id === 'Sub') {
       tag = 'SUB_START';
+    } else if (id === 'Select') {
+      tag = 'SELECT_START';
     } else if (id === 'Step') {
       tag = 'STEP';
     } else if (id === 'For') {
@@ -105,6 +115,8 @@ export default class Lexer {
       tag = 'TO';
     } else if (id === 'Next') {
       tag = 'NEXT';
+    } else if (id === 'Case') {
+      tag = 'CASE';
     } else if (id === 'Do') {
       tag = 'DO';
     } else if (id === 'Loop') {

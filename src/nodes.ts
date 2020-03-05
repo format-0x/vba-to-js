@@ -672,3 +672,58 @@ export class For extends Base {
     ];
   }
 }
+
+export class Switch extends Base {
+  constructor(
+    private subject: Base,
+    private cases: SwitchCase[],
+    private defaultCase: SwitchCase = new SwitchCase([], new Block()),
+  ) {
+    super();
+  }
+
+  compileNode(options: Options): CodeFragment[] {
+    const subject = this.compileToFragments(options);
+    const cases = this.cases.reduce((acc: CodeFragment[], switchCase: SwitchCase) => {
+      return [...acc, ...switchCase.compileToFragments(options)];
+    }, []);
+    const defaultCase = this.defaultCase.compileToFragments(options);
+
+    return [
+      this.makeCode('switch ('),
+      ...subject,
+      this.makeCode(') {\n'),
+      ...cases,
+      ...defaultCase,
+      this.makeCode('\n}'),
+    ];
+  }
+}
+
+export class SwitchCase extends Base {
+  constructor(private expressions: Base[], private body: Block) {
+    super();
+  }
+
+  compileNode(options: Options): CodeFragment[] {
+    const compiledExpressions = this.expressions.reduce((acc: CodeFragment[][], expr: Base) => {
+      return [...acc, expr.compileToFragments(options)];
+    }, []);
+    const cases = compiledExpressions.map((fragment) => {
+      return [
+        this.makeCode('case '),
+        ...fragment,
+        this.makeCode(':'),
+      ];
+    });
+
+    if (!cases.length) {
+      cases.push([this.makeCode('default:')]);
+    }
+
+    const body = this.body.compileToFragments(options);
+    const exit = new Break().compileToFragments(options);
+
+    return this.joinFragments([...cases, body, exit], '\n');
+  }
+}

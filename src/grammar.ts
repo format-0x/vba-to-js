@@ -6,7 +6,7 @@ import {
   NumberLiteral,
   Op, Parameter, Parens, Return,
   Root,
-  StringLiteral, Type,
+  StringLiteral, SwitchCase, Type,
   Value,
   VariableDeclaration, VariableDeclarationList, While
 } from './nodes';
@@ -255,6 +255,22 @@ const grammar: Grammar = {
   WhileBody: [
     dispatch('Body TERMINATOR LOOP', function () {
       return $1;
+    }),
+  ],
+  Switch: [
+    dispatch('SELECT_START Expression TERMINATOR Body TERMINATOR', function () {
+      return new SwitchCase($2, $4);
+    }),
+  ],
+  SwitchCase: [
+    dispatch('CASE CaseExpressions TERMINATOR Body TERMINATOR', function () {
+      return new SwitchCase($2, $4);
+    }),
+  ],
+  CaseExpressions: [
+    dispatch('Expression'),
+    dispatch('CaseExpressions , Expression', function () {
+      return [].concat($1, $3);
     }),
   ],
   If: [
