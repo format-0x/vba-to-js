@@ -1,7 +1,7 @@
 import { Alternative, Grammar, Options } from './types';
 import {
   Assign,
-  Block, Break, Call, Code,
+  Block, Break, Call, Code, For,
   IdentifierLiteral, If, Literal,
   NumberLiteral,
   Op, Parameter, Parens, Return,
@@ -64,6 +64,7 @@ const grammar: Grammar = {
     dispatch('If'),
     dispatch('PostWhile'),
     dispatch('PreWhile'),
+    dispatch('For'),
     dispatch('Wend'),
     dispatch('Break'),
   ],
@@ -212,6 +213,22 @@ const grammar: Grammar = {
     }),
     dispatch('Identifier AS TYPE SIZE NUMBER', function () {
       return new VariableDeclaration($1, new Type($3, { size: $5 }));
+    }),
+  ],
+  For: [
+    dispatch('ForClause TERMINATOR Body TERMINATOR NEXT', function () {
+      return $1.addBody($3);
+    }),
+    dispatch('ForClause TERMINATOR Body TERMINATOR NEXT Value', function () {
+      return $1.addBody($3);
+    }),
+  ],
+  ForClause: [
+    dispatch('FOR Assign TO Value', function () {
+      return new For($2, $4);
+    }),
+    dispatch('FOR Assign TO Value STEP Value', function () {
+      return new For($2, $4, $6);
     }),
   ],
   Wend: [

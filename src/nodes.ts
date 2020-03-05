@@ -56,11 +56,13 @@ export class Scope {
     do {
       temp = `${name}${++index}`;
     }
-    while (this.referencedVariables.includes(name) || this.find(temp));
+    while (this.referencedVariables.includes(temp) || this.find(temp));
 
     if (options.reserve) {
       this.add(temp);
     }
+
+    this.referencedVariables.push(temp);
 
     return temp;
   }
@@ -562,7 +564,7 @@ export class VariableDeclarationList extends Base {
 VariableDeclaration.prototype.children = ['variableList'];
 
 export class Assign extends Base {
-  constructor(private variable: Value, private value: Value) {
+  constructor(public variable: Value, public value: Value) {
     super();
   }
 
@@ -628,5 +630,45 @@ export class While extends Base {
     }
 
     return result.flat();
+  }
+}
+
+export class For extends Base {
+  private body: Block = new Block();
+
+  constructor(
+    private init: Assign,
+    private end: Value,
+    private step: Value = new Value(new NumberLiteral('1')),
+  ) {
+    super();
+  }
+
+  addBody(body: Block) {
+    this.body = body;
+
+    return this;
+  }
+
+  compileNode(options: OptionsWithScope): CodeFragment[] {
+    const { variable } = this.init;
+    const name = options.scope.freeVariable('end');
+    const end = new Assign(new Value(new IdentifierLiteral(name)), this.end);
+    const compiledStep = this.step.compileToFragments(options);
+    const compiledStart = this.init.compileToFragments(options);
+    const compiledEnd = end.compileToFragments(options);
+    const compiledVariable = variable.compileToFragments(options);
+
+    const initClause = [...compiledStart, this.makeCode(', '), ...compiledEnd];
+    const conditionClause = [...compiledVariable, this.makeCode(' < '), this.makeCode(name)];
+    const postClause = [...compiledVariable, this.makeCode(' += '), ...compiledStep];
+
+    return [
+      this.makeCode('for ('),
+      ...this.joinFragments([initClause, conditionClause, postClause], '; '),
+      this.makeCode(') {\n'),
+      ...this.body.compileToFragments(options),
+      this.makeCode('\n}'),
+    ];
   }
 }

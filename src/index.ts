@@ -71,4 +71,4 @@ const compile = async (path: string, options: Options = {}) => {
   return fragmentsToString(fragments);
 };
 
-compile('vba/while.vb').then(console.log);
+compile('vba/for.vb').then(console.log);

@@ -87,7 +87,7 @@ export default class Lexer {
       this.tokens.pop();
 
       tag = 'IF_END';
-    } else if (prev === 'EXIT' && id === 'Do') {
+    } else if (prev === 'EXIT' && (id === 'Do' || id === 'For')) {
       this.tokens.pop();
 
       tag = 'BREAK';
@@ -97,6 +97,14 @@ export default class Lexer {
       tag = 'RETURN';
     } else if (id === 'Sub') {
       tag = 'SUB_START';
+    } else if (id === 'Step') {
+      tag = 'STEP';
+    } else if (id === 'For') {
+      tag = 'FOR';
+    } else if (id === 'To') {
+      tag = 'TO';
+    } else if (id === 'Next') {
+      tag = 'NEXT';
     } else if (id === 'Do') {
       tag = 'DO';
     } else if (id === 'Loop') {
