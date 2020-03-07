@@ -677,25 +677,22 @@ export class Switch extends Base {
   constructor(
     private subject: Base,
     private cases: SwitchCase[],
-    private defaultCase: SwitchCase = new SwitchCase([], new Block()),
   ) {
     super();
   }
 
   compileNode(options: Options): CodeFragment[] {
-    const subject = this.compileToFragments(options);
+    const subject = this.subject.compileToFragments(options);
     const cases = this.cases.reduce((acc: CodeFragment[], switchCase: SwitchCase) => {
       return [...acc, ...switchCase.compileToFragments(options)];
     }, []);
-    const defaultCase = this.defaultCase.compileToFragments(options);
 
     return [
       this.makeCode('switch ('),
       ...subject,
       this.makeCode(') {\n'),
       ...cases,
-      ...defaultCase,
-      this.makeCode('\n}'),
+      this.makeCode('}'),
     ];
   }
 }
@@ -717,13 +714,13 @@ export class SwitchCase extends Base {
       ];
     });
 
-    if (!cases.length) {
+    if (!this.expressions.length) {
       cases.push([this.makeCode('default:')]);
     }
 
     const body = this.body.compileToFragments(options);
-    const exit = new Break().compileToFragments(options);
+    const br = [...new Break().compileToFragments(options), this.makeCode('\n')];
 
-    return this.joinFragments([...cases, body, exit], '\n');
+    return this.joinFragments([...cases, body, br], '\n');
   }
 }

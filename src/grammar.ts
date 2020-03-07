@@ -6,7 +6,7 @@ import {
   NumberLiteral,
   Op, Parameter, Parens, Return,
   Root,
-  StringLiteral, SwitchCase, Type,
+  StringLiteral, Switch, SwitchCase, Type,
   Value,
   VariableDeclaration, VariableDeclarationList, While
 } from './nodes';
@@ -67,6 +67,7 @@ const grammar: Grammar = {
     dispatch('For'),
     dispatch('Wend'),
     dispatch('Break'),
+    dispatch('Switch'),
   ],
   Expression: [
     dispatch('Value'),
@@ -258,8 +259,24 @@ const grammar: Grammar = {
     }),
   ],
   Switch: [
-    dispatch('SELECT_START Expression TERMINATOR Body TERMINATOR', function () {
-      return new SwitchCase($2, $4);
+    dispatch('SELECT_START Expression TERMINATOR SwitchCaseList SELECT_END', function () {
+      return new Switch($2, $4);
+    }),
+    dispatch('SELECT_START Expression TERMINATOR DefaultSwitchCaseList SELECT_END', function () {
+      return new Switch($2, $4);
+    }),
+  ],
+  DefaultSwitchCaseList: [
+    dispatch('SwitchCaseList DEFAULT_CASE TERMINATOR Body TERMINATOR', function () {
+      return [...$1, new SwitchCase([], $4)];
+    }),
+  ],
+  SwitchCaseList: [
+    dispatch('SwitchCase', function () {
+      return [$1];
+    }),
+    dispatch('SwitchCaseList SwitchCase', function () {
+      return [...$1, $2];
     }),
   ],
   SwitchCase: [
@@ -268,9 +285,11 @@ const grammar: Grammar = {
     }),
   ],
   CaseExpressions: [
-    dispatch('Expression'),
+    dispatch('Expression', function () {
+      return [$1];
+    }),
     dispatch('CaseExpressions , Expression', function () {
-      return [].concat($1, $3);
+      return [...$1, $3];
     }),
   ],
   If: [

@@ -79,6 +79,10 @@ export default class Lexer {
       this.tokens.pop();
 
       tag = 'SUB_END';
+    } else if (prev === 'SELECT' && id === 'Case') {
+      this.tokens.pop();
+
+      tag = 'SELECT_START';
     } else if (prev === 'END' && id === 'Select') {
       this.tokens.pop();
 
@@ -106,7 +110,7 @@ export default class Lexer {
     } else if (id === 'Sub') {
       tag = 'SUB_START';
     } else if (id === 'Select') {
-      tag = 'SELECT_START';
+      tag = 'SELECT';
     } else if (id === 'Step') {
       tag = 'STEP';
     } else if (id === 'For') {
