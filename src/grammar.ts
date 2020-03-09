@@ -69,6 +69,7 @@ const grammar: Grammar = {
     dispatch('Wend'),
     dispatch('Break'),
     dispatch('Switch'),
+    dispatch('Call'),
   ],
   Expression: [
     dispatch('Value'),
@@ -184,9 +185,11 @@ const grammar: Grammar = {
     dispatch('Value Args', function () {
       return new Call($1, $2);
     }),
-    // dispatch('CALL Value Args', function () {
-    //   return new Call($2, $3);
-    // }),
+  ],
+  Call: [
+    dispatch('CALL Value Args', function () {
+      return new Call($2, $3);
+    }),
   ],
   Args: [
     dispatch('( )', function () {

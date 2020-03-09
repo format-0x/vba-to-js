@@ -753,4 +753,3 @@ export class Access extends Base {
     return [this.makeCode('.'), ...name];
   }
 }
-
