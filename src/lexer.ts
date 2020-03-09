@@ -256,8 +256,13 @@ export default class Lexer {
     }
 
     const [input] = match;
+    const [prev] = this.prev();
 
-    this.tokens.push(this.makeToken('TERMINATOR', input));
+    if (prev === '_') {
+      this.tokens.pop();
+    } else {
+      this.tokens.push(this.makeToken('TERMINATOR', input));
+    }
 
     return input.length;
   }

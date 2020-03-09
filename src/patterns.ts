@@ -1,4 +1,4 @@
-export const IDENTIFIER = /^(?!\d)((?:\w+))([%&#$!@]|:=)?/;
+export const IDENTIFIER = /^(?!\d|_)((?:\w+))([%&#$!@]|:=)?/;
 export const WHITESPACE = /^\s/;
 export const NEWLINE = /^\n/;
 export const STRING = /^(["'])(.*?)\1/;
