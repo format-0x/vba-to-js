@@ -71,4 +71,4 @@ const compile = async (path: string, options: Options = {}) => {
   return fragmentsToString(fragments);
 };
 
-compile('vba/switch.vb').then(console.log);
+compile('vba/properties.vb').then(console.log);

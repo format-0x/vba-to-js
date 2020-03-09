@@ -66,6 +66,9 @@ export default class Lexer {
 
     if (id === 'As') {
       tag = TokenType.As;
+    } else if (prev === '.') {
+
+      tag = TokenType.Property;
     } else if (prev === TokenType.As) {
       if (!(id in TYPES)) {
         // TODO: add proper implementation (error)

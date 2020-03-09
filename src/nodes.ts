@@ -350,12 +350,27 @@ export class Root extends Base {
 Root.prototype.children = ['body'];
 
 export class Value extends Base {
-  constructor(public base: Literal, public params: ValueParams = {}) {
+  constructor(
+    public base: Literal,
+    public props: PropertyName[] = [],
+    public params: ValueParams = {},
+  ) {
     super();
   }
 
-  compileNode(options: Options = {}) {
-    return this.base.compileToFragments(options);
+  add(prop: PropertyName) {
+    this.props.push(prop);
+
+    return this;
+  }
+
+  compileNode(options: Options = {}): CodeFragment[] {
+    const base = this.base.compileToFragments(options);
+    const props = this.props.reduce((acc: CodeFragment[], prop: PropertyName) => {
+      return [...acc, ...prop.compileToFragments(options)];
+    }, []);
+
+    return [...base, ...props];
   }
 }
 
@@ -724,3 +739,18 @@ export class SwitchCase extends Base {
     return this.joinFragments([...cases, body, br], '\n');
   }
 }
+
+export class PropertyName extends Literal {}
+
+export class Access extends Base {
+  constructor(private name: IdentifierLiteral) {
+    super();
+  }
+
+  compileNode(options: Options): CodeFragment[] {
+    const name = this.name.compileToFragments(options);
+
+    return [this.makeCode('.'), ...name];
+  }
+}
+

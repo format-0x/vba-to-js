@@ -23,6 +23,6 @@ export const operators = [
   ['left', '\\'],
   ['left', '*', '/'],
   ['left', '^'],
-  ['left', 'CALL'],
   ['left', '(', ')'],
+  ['left', 'CALL'],
 ];

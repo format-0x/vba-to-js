@@ -1,10 +1,11 @@
 import { Alternative, Grammar, Options } from './types';
 import {
+  Access,
   Assign,
   Block, Break, Call, Code, For,
   IdentifierLiteral, If, Literal,
   NumberLiteral,
-  Op, Parameter, Parens, Return,
+  Op, Parameter, Parens, PropertyName, Return,
   Root,
   StringLiteral, Switch, SwitchCase, Type,
   Value,
@@ -74,11 +75,15 @@ const grammar: Grammar = {
     dispatch('Code'),
     dispatch('Operation'),
     dispatch('Assign'),
-    dispatch('Invocation'),
   ],
   Identifier: [
     dispatch('IDENTIFIER', function () {
       return new IdentifierLiteral($1);
+    }),
+  ],
+  Property: [
+    dispatch('PROPERTY', function () {
+      return new PropertyName($1);
     }),
   ],
   Number: [
@@ -130,6 +135,9 @@ const grammar: Grammar = {
     dispatch('Identifier', function () {
       return new Value($1);
     }),
+    dispatch('Value Accessor', function () {
+      return $1.add($2);
+    }),
   ],
   Break: [
     dispatch('BREAK', function () {
@@ -157,18 +165,28 @@ const grammar: Grammar = {
   ],
   Value: [
     dispatch('Assignable'),
-    dispatch('Parenthetical'),
+    dispatch('Parenthetical', function () {
+      return new Value($1);
+    }),
     dispatch('Literal', function () {
       return new Value($1);
+    }),
+    dispatch('Invocation', function () {
+      return new Value($1);
+    }),
+  ],
+  Accessor: [
+    dispatch('. Property', function () {
+      return new Access($2);
     }),
   ],
   Invocation: [
     dispatch('Value Args', function () {
       return new Call($1, $2);
     }),
-    dispatch('CALL Value Args', function () {
-      return new Call($2, $3);
-    }),
+    // dispatch('CALL Value Args', function () {
+    //   return new Call($2, $3);
+    // }),
   ],
   Args: [
     dispatch('( )', function () {

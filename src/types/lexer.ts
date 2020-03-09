@@ -29,4 +29,5 @@ export enum TokenType {
   Type = 'TYPE',
   CallStart = 'CALL_START',
   CallEnd = 'CALL_END',
+  Property = 'PROPERTY',
 }
