@@ -3,4 +3,4 @@ Sub Test(C As Integer = 0, D As String)
   If C < 0 Then Exit Sub Else C = A * B
 End Sub
 
-Test(D:="Test")
+Test(3, D:="Test")

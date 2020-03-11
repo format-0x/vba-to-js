@@ -55,7 +55,7 @@ export default class Lexer {
       this.tokens.push(this.makeToken(TokenType.Identifier, id));
 
       if (shorthand === ':=') {
-        this.tokens.push(this.makeToken('=', '='));
+        this.tokens.push(this.makeToken(':=', ':='));
       } else {
         this.tokens.push(this.makeToken(TokenType.As, 'As'));
         this.tokens.push(this.makeToken(TokenType.Type, ShorthandTypes[<keyof typeof ShorthandTypes>shorthand]));

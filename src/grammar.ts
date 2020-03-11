@@ -3,7 +3,7 @@ import {
   Access,
   Assign,
   Block, Break, Call, Code, For,
-  IdentifierLiteral, If, Literal,
+  IdentifierLiteral, If, Literal, NamedArgument,
   NumberLiteral,
   Op, Parameter, Parens, PropertyName, Return,
   Root,
@@ -207,6 +207,12 @@ const grammar: Grammar = {
   ],
   Arg: [
     dispatch('Expression'),
+    dispatch('NamedArg'),
+  ],
+  NamedArg: [
+    dispatch('Identifier := Value', function () {
+      return new NamedArgument($1, $3);
+    }),
   ],
   Parenthetical: [
     dispatch('( Operation )', function () {

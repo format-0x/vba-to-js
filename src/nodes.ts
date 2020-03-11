@@ -46,7 +46,7 @@ export class Scope {
   }
 
   check(name: string): boolean {
-    return !!(this.find(name) || this.parent?.check(name));
+    return !!this.find(name);
   }
 
   freeVariable(name: string, options: Options = {}): string {
@@ -67,8 +67,16 @@ export class Scope {
     return temp;
   }
 
-  find(name: string): VariableParams | undefined {
-    return this._variables.find(({ name: variableName }) => name === variableName);
+  find(name: string, lookup: boolean = true): VariableParams | undefined {
+    let scope: Scope | null = this;
+
+    do {
+      const res = scope._variables.find(({ name: variableName }) => name === variableName);
+
+      if (res) {
+        return res;
+      }
+    } while (lookup && (scope = scope.parent));
   }
 
   get variables() {
@@ -148,17 +156,26 @@ export class Call extends Base {
     super();
   }
 
-  compileNode(options: Options): CodeFragment[] {
-    const args = this.args.reduce((acc, arg) => {
-      return [...acc, arg.compileToFragments(options)];
+  compileNode(options: OptionsWithScope): CodeFragment[] {
+    const { scope } = options;
+    const { value } = scope.find(this.variable.base.value) || {};
+
+    const args = this.args.reduce((acc, arg, i) => {
+      const compiledArg = arg instanceof NamedArgument
+        ? arg.compileToFragments(options)
+        : new NamedArgument(
+          new Value(new IdentifierLiteral(value[i])),
+          <Value>arg,
+        ).compileToFragments(options);
+      return [...acc, compiledArg];
     }, <CodeFragment[][]>[]);
     const compiledArgs = this.joinFragments(args, ', ');
 
     return [
       ...this.variable.compileToFragments(options),
-      this.makeCode('('),
+      this.makeCode('({'),
       ...compiledArgs,
-      this.makeCode(')'),
+      this.makeCode('})'),
     ];
   }
 }
@@ -397,7 +414,7 @@ export class IdentifierLiteral extends Literal {
 
 export class VariableDeclaration extends Base {
   constructor(
-    protected name: IdentifierLiteral,
+    public name: IdentifierLiteral,
     protected variableType: Type = new Type('Variant'),
     protected initializer?: Value,
   ) {
@@ -514,17 +531,18 @@ export class Code extends Base {
   }
 
   compileNode(options: OptionsWithScope): CodeFragment[] {
+    const paramNames = this.params.map(({ name: { value } }) => value);
     options = { ...options };
-    options.scope = this.makeScope(options.scope);
     options.scope.add(
       this.name.value,
       'Object',
-      null,
+      paramNames,
       'Function',
     );
+    options.scope = this.makeScope(options.scope);
 
     const name = this.name.compileToFragments(options);
-    const output: CodeFragment[] = [this.makeCode('function '), ...name, this.makeCode('(')];
+    const output: CodeFragment[] = [this.makeCode('function '), ...name, this.makeCode('({')];
 
     this.params.forEach((param, i) => {
       param.declare(options);
@@ -537,7 +555,7 @@ export class Code extends Base {
     });
 
     output.push(
-      this.makeCode(') {\n'),
+      this.makeCode('}) {\n'),
       ...this.body.compileWithDeclarations(options),
       this.makeCode('\n}'),
     );
@@ -579,11 +597,22 @@ export class VariableDeclarationList extends Base {
 VariableDeclaration.prototype.children = ['variableList'];
 
 export class Assign extends Base {
-  constructor(public variable: Value, public value: Value) {
+  constructor(
+    public variable: Value,
+    public value: Value,
+    public context: string = 'value',
+  ) {
     super();
   }
 
   compileNode(options: OptionsWithScope): CodeFragment[] {
+    const identifier = this.variable.compileToFragments(options);
+    const val = this.value.compileToFragments(options);
+
+    if (this.context === 'object') {
+      return [...identifier, this.makeCode(':'), ...val];
+    }
+
     const { scope } = options;
     const name = this.variable.base.value;
     const declared = scope.check(name);
@@ -597,9 +626,6 @@ export class Assign extends Base {
     if (kind === 'Function') {
       return new Return(this.value).compileToFragments(options);
     } else {
-      const identifier = this.variable.compileToFragments(options);
-      const val = this.value.compileToFragments(options);
-
       return [...identifier, this.makeCode('='), ...val];
     }
   }
@@ -751,5 +777,28 @@ export class Access extends Base {
     const name = this.name.compileToFragments(options);
 
     return [this.makeCode('.'), ...name];
+  }
+}
+
+export class With extends Base {
+  constructor(
+    private object: Value,
+    private body: Block,
+    private parent: With | null,
+  ) {
+    super();
+  }
+
+  compileNode(options: Options): CodeFragment[] {
+    return [];
+  }
+}
+
+export class NamedArgument extends Assign {
+  constructor(
+    variable: Value,
+    value: Value,
+  ) {
+    super(variable, value, 'object');
   }
 }
