@@ -7,9 +7,9 @@ import {
   NumberLiteral,
   Op, Parameter, Parens, PropertyName, Return,
   Root,
-  StringLiteral, Switch, SwitchCase, Type,
+  StringLiteral, Switch, SwitchCase, ThisLiteral, Type,
   Value,
-  VariableDeclaration, VariableDeclarationList, While
+  VariableDeclaration, VariableDeclarationList, While, With
 } from './nodes';
 
 declare const $1: any;
@@ -70,6 +70,7 @@ const grammar: Grammar = {
     dispatch('Break'),
     dispatch('Switch'),
     dispatch('Call'),
+    dispatch('With'),
   ],
   Expression: [
     dispatch('Value'),
@@ -135,6 +136,9 @@ const grammar: Grammar = {
   SimpleAssignable: [
     dispatch('Identifier', function () {
       return new Value($1);
+    }),
+    dispatch('Accessor', function () {
+      return new Value(new ThisLiteral()).add($1);
     }),
     dispatch('Value Accessor', function () {
       return $1.add($2);
@@ -361,6 +365,11 @@ const grammar: Grammar = {
     }),
     dispatch('ElseIf ELSE_IF IfBlockClause', function () {
       return $1.addElse($3);
+    }),
+  ],
+  With: [
+    dispatch('WITH Value TERMINATOR Body TERMINATOR WITH_END', function () {
+      return new With($2, $4);
     }),
   ],
   Operation: [

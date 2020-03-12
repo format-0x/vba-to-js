@@ -98,6 +98,10 @@ export default class Lexer {
       this.tokens.pop();
 
       tag = 'IF_END';
+    } else if (prev === 'END' && id === 'With') {
+      this.tokens.pop();
+
+      tag = 'WITH_END';
     } else if (prev === 'CASE' && id === 'Else') {
       this.tokens.pop();
 
@@ -142,6 +146,8 @@ export default class Lexer {
       tag = 'EXIT';
     } else if (id === 'If') {
       tag = 'IF';
+    } else if (id === 'With') {
+      tag = 'WITH';
     } else if (id === 'Then') {
       tag = 'THEN';
     } else if (id === 'ElseIf') {

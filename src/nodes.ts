@@ -10,7 +10,7 @@ import {
   VariablePosition,
   VariableType,
   Modifier,
-  OptionsWithScope, Kind
+  OptionsWithScope,
 } from './types';
 
 export class Scope {
@@ -412,6 +412,12 @@ export class IdentifierLiteral extends Literal {
   }
 }
 
+export class ThisLiteral extends Literal {
+  constructor() {
+    super('this');
+  }
+}
+
 export class VariableDeclaration extends Base {
   constructor(
     public name: IdentifierLiteral,
@@ -784,13 +790,18 @@ export class With extends Base {
   constructor(
     private object: Value,
     private body: Block,
-    private parent: With | null,
   ) {
     super();
   }
 
-  compileNode(options: Options): CodeFragment[] {
-    return [];
+  compileNode(options: OptionsWithScope): CodeFragment[] {
+    return [
+      this.makeCode('(function () {\n'),
+      ...this.body.compileToFragments(options),
+      this.makeCode('\n}).call('),
+      ...this.object.compileToFragments(options),
+      this.makeCode(');'),
+    ];
   }
 }
 
