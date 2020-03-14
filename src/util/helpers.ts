@@ -1,6 +1,7 @@
 import { SourceLocation } from '@babel/types';
 import { TokenLocation } from '../types';
 import { CodeFragment } from '../nodes';
+import { FUNCTION_ARGS } from '../patterns';
 
 export const jisonLocationToBabelLocation = ({
   first_column,
@@ -31,4 +32,24 @@ export const clean = (code: string): string => {
     .replace(/'.*$/gm, '')
     .replace(/\n+/g, '\n')
     .trim();
+};
+
+const isNotUndefined = (value: any) => typeof value !== 'undefined';
+
+export const handleNamedArgs = (func: Function, rawArgs: { [key: string]: any }) => {
+  const match = func.toString().match(FUNCTION_ARGS);
+
+  if (!match) throw new Error('');
+
+  const [, args] = match;
+  const handledArgs = args
+    .replace(/\s+/g, '')
+    .split(',')
+    .map((arg, i) => {
+      const [argument] = [rawArgs[arg], rawArgs[i]].filter(isNotUndefined);
+
+      return argument;
+    });
+
+  return func(...handledArgs);
 };

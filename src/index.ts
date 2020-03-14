@@ -1,4 +1,5 @@
 import { promises } from 'fs';
+import beautifier from 'js-beautify';
 import Lexer from './lexer';
 import bnf from './grammar';
 import * as nodes from './nodes';
@@ -71,4 +72,4 @@ const compile = async (path: string, options: Options = {}) => {
   return fragmentsToString(fragments);
 };
 
-compile('vba/function.vb').then(console.log);
+compile('vba/while.vb').then(beautifier.js.bind(beautifier)).then(console.log);

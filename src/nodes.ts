@@ -157,14 +157,11 @@ export class Call extends Base {
   }
 
   compileNode(options: OptionsWithScope): CodeFragment[] {
-    const { scope } = options;
-    const { value } = scope.find(this.variable.base.value) || {};
-
     const args = this.args.reduce((acc, arg, i) => {
       const compiledArg = arg instanceof NamedArgument
         ? arg.compileToFragments(options)
         : new NamedArgument(
-          new Value(new IdentifierLiteral(value[i])),
+          new Value(new IdentifierLiteral(i)),
           <Value>arg,
         ).compileToFragments(options);
       return [...acc, compiledArg];
@@ -172,8 +169,9 @@ export class Call extends Base {
     const compiledArgs = this.joinFragments(args, ', ');
 
     return [
+      this.makeCode('handleNamedArgs('),
       ...this.variable.compileToFragments(options),
-      this.makeCode('({'),
+      this.makeCode(', {'),
       ...compiledArgs,
       this.makeCode('})'),
     ];
@@ -548,7 +546,7 @@ export class Code extends Base {
     options.scope = this.makeScope(options.scope);
 
     const name = this.name.compileToFragments(options);
-    const output: CodeFragment[] = [this.makeCode('function '), ...name, this.makeCode('({')];
+    const output: CodeFragment[] = [this.makeCode('function '), ...name, this.makeCode('(')];
 
     this.params.forEach((param, i) => {
       param.declare(options);
@@ -561,7 +559,7 @@ export class Code extends Base {
     });
 
     output.push(
-      this.makeCode('}) {\n'),
+      this.makeCode(') {\n'),
       ...this.body.compileWithDeclarations(options),
       this.makeCode('\n}'),
     );

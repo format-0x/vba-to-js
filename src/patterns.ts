@@ -5,6 +5,7 @@ export const STRING = /^(["'])(.*?)\1/;
 export const NUMBER = /^\d+/;
 export const OPERATOR = /^(?:[-+*/\\^%=&]|<>|[><]=?|x?or|and|not|eqv|imp)/i;
 export const MODIFIER = /^(?:(?:re)?dim|static|private|public)/i;
+export const FUNCTION_ARGS = /^(?:function)?\s*[^(]*\(\s*([^)]*)\)/;
 
 export const MATH = ['-', '+', 'Mod', '\\', '*', '/', '^'];
 export const COMPARE = ['<>', '>', '<=', '>=', '<'];
