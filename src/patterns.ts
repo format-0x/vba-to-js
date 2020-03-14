@@ -12,6 +12,7 @@ export const LOGICAL = ['Imp', 'Eqv', 'Xor', 'Or', 'And', 'Not'];
 
 export const operators = [
   ['right', 'RETURN'],
+  ['left', ':='],
   ['left', '='],
   ['left', 'IF'],
   ['left', 'ELSE', 'ELSE_IF'],
@@ -23,6 +24,7 @@ export const operators = [
   ['left', '\\'],
   ['left', '*', '/'],
   ['left', '^'],
-  ['left', '(', ')'],
   ['left', 'CALL'],
+  ['left', '(', ')'],
+  ['left', '.'],
 ];

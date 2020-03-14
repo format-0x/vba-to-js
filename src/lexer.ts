@@ -211,6 +211,10 @@ export default class Lexer {
 
     if (value === ':') {
       tag = 'TERMINATOR';
+    } else if (value === '.' && (['TERMINATOR', 'WITH'].includes(prev))) {
+      this.tokens.push(this.makeToken('THIS', 'this'));
+    } else if (value === ',' && ['(', ','].includes(prev)) {
+      this.tokens.push(this.makeToken('ARG_SKIP', ''));
     }
 
     this.tokens.push(this.makeToken(tag, value));

@@ -574,6 +574,12 @@ Code.prototype.children = ['params', 'body'];
 
 export class BooleanLiteral extends Literal {}
 
+export class UndefinedLiteral extends Literal {
+  constructor() {
+    super('undefined');
+  }
+}
+
 export class DateLiteral extends Literal {}
 
 export class StringLiteral extends Literal {}

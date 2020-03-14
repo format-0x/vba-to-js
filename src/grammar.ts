@@ -7,7 +7,7 @@ import {
   NumberLiteral,
   Op, Parameter, Parens, PropertyName, Return,
   Root,
-  StringLiteral, Switch, SwitchCase, ThisLiteral, Type,
+  StringLiteral, Switch, SwitchCase, ThisLiteral, Type, UndefinedLiteral,
   Value,
   VariableDeclaration, VariableDeclarationList, While, With
 } from './nodes';
@@ -71,6 +71,7 @@ const grammar: Grammar = {
     dispatch('Switch'),
     dispatch('Call'),
     dispatch('With'),
+    dispatch('Invocation'),
   ],
   Expression: [
     dispatch('Value'),
@@ -99,7 +100,11 @@ const grammar: Grammar = {
     }),
   ],
   Literal: [
-    dispatch('String'), dispatch('Number')
+    dispatch('String'),
+    dispatch('Number'),
+    dispatch('ARG_SKIP', function () {
+      return new UndefinedLiteral();
+    }),
   ],
   Assign: [
     dispatch('Assignable = Expression', function () {
@@ -137,9 +142,6 @@ const grammar: Grammar = {
     dispatch('Identifier', function () {
       return new Value($1);
     }),
-    dispatch('Accessor', function () {
-      return new Value(new ThisLiteral()).add($1);
-    }),
     dispatch('Value Accessor', function () {
       return $1.add($2);
     }),
@@ -170,13 +172,14 @@ const grammar: Grammar = {
   ],
   Value: [
     dispatch('Assignable'),
-    dispatch('Parenthetical', function () {
-      return new Value($1);
-    }),
+    dispatch('This'),
+    // dispatch('Parenthetical', function () {
+    //   return new Value($1);
+    // }),
     dispatch('Literal', function () {
       return new Value($1);
     }),
-    dispatch('Invocation', function () {
+    dispatch('ParenthesizedInvocation', function () {
       return new Value($1);
     }),
   ],
@@ -185,17 +188,22 @@ const grammar: Grammar = {
       return new Access($2);
     }),
   ],
+  ParenthesizedInvocation: [
+    dispatch('Value ParenthesizedArgs', function () {
+      return new Call($1, $2);
+    }),
+  ],
   Invocation: [
-    dispatch('Value Args', function () {
+    dispatch('Value ArgList', function () {
       return new Call($1, $2);
     }),
   ],
   Call: [
-    dispatch('CALL Value Args', function () {
-      return new Call($2, $3);
+    dispatch('CALL ParenthesizedInvocation', function () {
+      return $2;
     }),
   ],
-  Args: [
+  ParenthesizedArgs: [
     dispatch('( )', function () {
       return [];
     }),
@@ -204,9 +212,11 @@ const grammar: Grammar = {
     }),
   ],
   ArgList: [
-    dispatch('Arg'),
+    dispatch('Arg', function () {
+      return [$1];
+    }),
     dispatch('ArgList , Arg', function () {
-      return [].concat($1, $3);
+      return [...$1, $3];
     }),
   ],
   Arg: [
@@ -216,6 +226,11 @@ const grammar: Grammar = {
   NamedArg: [
     dispatch('Identifier := Value', function () {
       return new NamedArgument($1, $3);
+    }),
+  ],
+  This: [
+    dispatch('THIS', function () {
+      return new Value(new ThisLiteral());
     }),
   ],
   Parenthetical: [
