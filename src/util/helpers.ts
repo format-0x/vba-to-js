@@ -36,7 +36,7 @@ export const clean = (code: string): string => {
 
 const isNotUndefined = (value: any) => typeof value !== 'undefined';
 
-export const handleNamedArgs = (func: Function, rawArgs: { [key: string]: any }) => {
+export function handleNamedArgs(this: any, func: Function, rawArgs: { [key: string]: any }) {
   const match = func.toString().match(FUNCTION_ARGS);
 
   if (!match) throw new Error('');
@@ -51,5 +51,5 @@ export const handleNamedArgs = (func: Function, rawArgs: { [key: string]: any })
       return argument;
     });
 
-  return func(...handledArgs);
-};
+  return func.apply(this, handledArgs);
+}

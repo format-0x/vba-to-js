@@ -72,4 +72,6 @@ const compile = async (path: string, options: Options = {}) => {
   return fragmentsToString(fragments);
 };
 
-compile('vba/while.vb').then(beautifier.js.bind(beautifier)).then(console.log);
+compile('vba/with.vb')
+  .then(beautifier.js.bind(beautifier))
+  .then(console.log);
