@@ -169,8 +169,8 @@ export default class Lexer {
     return id.length;
   }
 
-  prev() {
-    const [prev] = this.tokens.slice(-1);
+  prev(offset: number = -1) {
+    const [prev] = this.tokens.slice(offset);
     return prev;
   }
 
@@ -267,6 +267,11 @@ export default class Lexer {
 
     const [input] = match;
     const [prev] = this.prev();
+
+    // TODO: add proper implementation
+    if (prev === 'TERMINATOR') {
+      return input.length;
+    }
 
     if (prev === '_') {
       this.tokens.pop();

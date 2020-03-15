@@ -2,7 +2,7 @@ import { Alternative, Grammar, Options } from './types';
 import {
   Access,
   Assign,
-  Block, Break, Call, Code, For,
+  Block, Break, Call, Code, CodeFragment, For,
   IdentifierLiteral, If, Literal, NamedArgument,
   NumberLiteral,
   Op, Parameter, Parens, PropertyName, Return,
@@ -72,12 +72,15 @@ const grammar: Grammar = {
     dispatch('Call'),
     dispatch('With'),
     dispatch('Invocation'),
+    dispatch('Code'),
   ],
   Expression: [
     dispatch('Value'),
-    dispatch('Code'),
     dispatch('Operation'),
     dispatch('Assign'),
+    dispatch('Parenthetical', function () {
+      return new Value($1);
+    }),
   ],
   Identifier: [
     dispatch('IDENTIFIER', function () {
@@ -173,9 +176,6 @@ const grammar: Grammar = {
   Value: [
     dispatch('Assignable'),
     dispatch('This'),
-    // dispatch('Parenthetical', function () {
-    //   return new Value($1);
-    // }),
     dispatch('Literal', function () {
       return new Value($1);
     }),
@@ -194,8 +194,11 @@ const grammar: Grammar = {
     }),
   ],
   Invocation: [
-    dispatch('Value ArgList', function () {
-      return new Call($1, $2);
+    dispatch('Value FirstArg', function () {
+      return new Call($1, [$2]);
+    }),
+    dispatch('Value FirstArg , ArgList', function () {
+      return new Call($1, [$2, ...$4]);
     }),
   ],
   Call: [
@@ -219,6 +222,10 @@ const grammar: Grammar = {
       return [...$1, $3];
     }),
   ],
+  FirstArg: [
+    dispatch('Value'),
+    dispatch('NamedArg'),
+  ],
   Arg: [
     dispatch('Expression'),
     dispatch('NamedArg'),
@@ -234,7 +241,7 @@ const grammar: Grammar = {
     }),
   ],
   Parenthetical: [
-    dispatch('( Operation )', function () {
+    dispatch('( Expression )', function () {
       return new Parens($2);
     }),
   ],
