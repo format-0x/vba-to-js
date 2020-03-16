@@ -23,8 +23,12 @@ export type TokenLocationRange = [number, number];
 export enum TokenType {
   Identifier = 'IDENTIFIER',
   String = 'STRING',
+  StringType = 'STRING_TYPE',
   Number = 'NUMBER',
+  New = 'NEW',
   Modifier = 'MODIFIER',
+  FunctionModifier = 'FUNCTION_MODIFIER',
+  ParamModifier = 'PARAM_MODIFIER',
   As = 'AS',
   Type = 'TYPE',
   CallStart = 'CALL_START',

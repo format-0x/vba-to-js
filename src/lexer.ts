@@ -1,5 +1,17 @@
 import { LexerOptions, Pos, ShorthandTypes, Token, TokenLocation, TokenOptions, TokenType, TYPES } from './types';
-import { COMPARE, IDENTIFIER, LOGICAL, MATH, MODIFIER, NEWLINE, NUMBER, OPERATOR, STRING, WHITESPACE } from './patterns';
+import {
+  COMPARE,
+  FUNCTION_MODIFIER,
+  IDENTIFIER,
+  LOGICAL,
+  MATH,
+  MODIFIER,
+  NEWLINE,
+  NUMBER,
+  OPERATOR, PARAM_MODIFIER,
+  STRING,
+  WHITESPACE
+} from './patterns';
 import { clean } from './util';
 
 export default class Lexer {
@@ -66,8 +78,9 @@ export default class Lexer {
 
     if (id === 'As') {
       tag = TokenType.As;
+    } else if (id === 'New') {
+      tag = TokenType.New;
     } else if (prev === '.') {
-
       tag = TokenType.Property;
     } else if (prev === TokenType.As) {
       if (!(id in TYPES)) {
@@ -75,6 +88,12 @@ export default class Lexer {
         console.error(`error: ${id}`);
       }
 
+      if (id === 'String') {
+        tag = TokenType.StringType;
+      } else {
+        tag = TokenType.Type;
+      }
+    } else if (prev === TokenType.New) {
       tag = TokenType.Type;
     } else if (LOGICAL.includes(id)) {
       tag = 'LOGICAL';
@@ -176,13 +195,20 @@ export default class Lexer {
 
   modifierToken(): number {
     let match: RegExpExecArray | null;
+    let tag: string;
 
-    if (!(match = MODIFIER.exec(this.chunk))) {
+    if ((match = FUNCTION_MODIFIER.exec(this.chunk))) {
+      tag = TokenType.FunctionModifier;
+    } else if ((match = MODIFIER.exec(this.chunk))) {
+      tag = TokenType.Modifier;
+    } else if ((match = PARAM_MODIFIER.exec(this.chunk))) {
+      tag = TokenType.ParamModifier;
+    } else {
       return 0;
     }
 
-    const [modifier] = match;
-    const token = this.makeToken(TokenType.Modifier, modifier);
+    const [, modifier] = match;
+    const token = this.makeToken(tag, modifier);
 
     this.tokens.push(token);
 
@@ -200,11 +226,7 @@ export default class Lexer {
     let tag = value;
     const [prev] = this.prev();
     // TODO: add proper implementation
-    if (value === '=' && !['IDENTIFIER', 'TYPE'].includes(prev)) {
-      tag = 'COMPARE';
-    } else if (value === '*' && prev === TokenType.Type) {
-      tag = 'SIZE';
-    } else if (COMPARE.includes(value)) {
+    if (COMPARE.includes(value)) {
       tag = 'COMPARE';
     }
     // TODO: add proper implementation

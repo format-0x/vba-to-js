@@ -10,7 +10,7 @@ import {
   VariablePosition,
   VariableType,
   Modifier,
-  OptionsWithScope,
+  OptionsWithScope, ParamModifier,
 } from './types';
 
 export class Scope {
@@ -507,6 +507,8 @@ export class If extends Base {
 }
 
 export class Parameter extends VariableDeclaration {
+  private modifier?: ParamModifier;
+
   declare(options: OptionsWithScope): void {
     const { scope } = options;
     let value: string | undefined;
@@ -519,15 +521,30 @@ export class Parameter extends VariableDeclaration {
 
     scope.add(this.name.value, this.variableType.type, value, 'Parameter');
   }
+
+  setModifier(modifier: ParamModifier): this {
+    this.modifier = modifier;
+
+    return this;
+  }
 }
 
 export class Code extends Base {
+  private modifier: Modifier = Modifier.Public;
+
   constructor(
     private name: IdentifierLiteral,
     private params: Parameter[] = [],
     private body: Block = new Block([]),
+    private returnType: Type = new Type('Variant'),
   ) {
     super();
+  }
+
+  setModifier(modifier: Modifier): this {
+    this.modifier = modifier;
+
+    return this;
   }
 
   makeScope(parentScope: Scope): Scope {
@@ -627,7 +644,7 @@ export class Assign extends Base {
     const name = this.variable.base.value;
     const declared = scope.check(name);
 
-    if (!declared) {
+    if (!this.variable.props.length && !declared) {
       scope.add(name);
     }
 

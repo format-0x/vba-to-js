@@ -4,7 +4,9 @@ export const NEWLINE = /^\n/;
 export const STRING = /^(["'])(.*?)\1/;
 export const NUMBER = /^\d+/;
 export const OPERATOR = /^(?:[-+*/\\^%=&]|<>|[><]=?|x?or|and|not|eqv|imp)/i;
-export const MODIFIER = /^(?:(?:re)?dim|static|private|public)/i;
+export const MODIFIER = /^((?:re)?dim|static|private|public)/i;
+export const FUNCTION_MODIFIER = /^(static|private|public|friend)\s+(?=function|sub)/i;
+export const PARAM_MODIFIER = /^(optional|by(?:val|ref))/i;
 export const FUNCTION_ARGS = /^(?:function)?\s*[^(]*\(\s*([^)]*)\)/;
 
 export const MATH = ['-', '+', 'Mod', '\\', '*', '/', '^'];

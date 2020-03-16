@@ -13,6 +13,14 @@ export enum Modifier {
   Static = 'STATIC',
   Private = 'PRIVATE',
   Public = 'PUBLIC',
+  Friend = 'FRIEND',
+}
+
+export enum ParamModifier {
+  ByVal = 'BY_VAL',
+  ByRef = 'BY_REF',
+  Optional = 'OPTIONAL',
+  ParamArray = 'PARAM_ARRAY',
 }
 
 export interface Options {

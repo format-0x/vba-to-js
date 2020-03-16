@@ -123,22 +123,30 @@ const grammar: Grammar = {
     dispatch('', function () {
       return [];
     }),
-    dispatch('ParamVariable', function () {
+    dispatch('Param', function () {
       return [$1];
     }),
-    dispatch('ParamList , ParamVariable', function () {
+    dispatch('ParamList , Param', function () {
       return [...$1, $3];
+    }),
+  ],
+  Param: [
+    dispatch('ParamVariable', function () {
+      return new Parameter($1);
+    }),
+    dispatch('PARAM_MODIFIER ParamVariable', function () {
+      return new Parameter($2).setModifier($1);
     }),
   ],
   ParamVariable: [
     dispatch('Identifier', function () {
       return new Parameter($1);
     }),
-    dispatch('Identifier AS TYPE', function () {
-      return new Parameter($1, new Type($3));
+    dispatch('Identifier Type', function () {
+      return new Parameter($1, $2);
     }),
-    dispatch('Identifier AS TYPE = Expression', function () {
-      return new Parameter($1, new Type($3), $5);
+    dispatch('Identifier Type = Expression', function () {
+      return new Parameter($1, $2, $4);
     }),
   ],
   SimpleAssignable: [
@@ -163,11 +171,26 @@ const grammar: Grammar = {
     }),
   ],
   Code: [
+    dispatch('Sub'),
+    dispatch('FUNCTION_MODIFIER Sub', function () {
+      return $2.setModifier($1);
+    }),
+    dispatch('Function'),
+    dispatch('FUNCTION_MODIFIER Function', function () {
+      return $2.setModifier($1);
+    }),
+  ],
+  Sub: [
     dispatch('SUB_START Identifier Params TERMINATOR Body TERMINATOR SUB_END', function () {
       return new Code($2, $3, Block.wrap([$5]));
     }),
+  ],
+  Function: [
     dispatch('FUNCTION_START Identifier Params TERMINATOR Body TERMINATOR FUNCTION_END', function () {
       return new Code($2, $3, Block.wrap([$5]));
+    }),
+    dispatch('FUNCTION_START Identifier Params Type TERMINATOR Body TERMINATOR FUNCTION_END', function () {
+      return new Code($2, $3, Block.wrap([$6]), $3);
     }),
   ],
   Assignable: [
@@ -262,11 +285,30 @@ const grammar: Grammar = {
     dispatch('Identifier', function () {
       return new VariableDeclaration($1);
     }),
-    dispatch('Identifier AS TYPE', function () {
-      return new VariableDeclaration($1, new Type($3));
+    dispatch('Identifier Type', function () {
+      return new VariableDeclaration($1, $2);
     }),
-    dispatch('Identifier AS TYPE SIZE NUMBER', function () {
-      return new VariableDeclaration($1, new Type($3, { size: $5 }));
+    dispatch('Identifier New', function () {
+      return new VariableDeclaration($1, $2);
+    }),
+  ],
+  New: [
+    dispatch('AS NEW TYPE', function () {
+      return new Type($3, { object: true });
+    }),
+  ],
+  Type: [
+    dispatch('AS TYPE', function () {
+      return new Type($2);
+    }),
+    dispatch('StringType'),
+  ],
+  StringType: [
+    dispatch('AS STRING_TYPE', function () {
+      return new Type($2);
+    }),
+    dispatch('AS STRING_TYPE * NUMBER', function () {
+      return new Type($2, { size: $4 });
     }),
   ],
   For: [
