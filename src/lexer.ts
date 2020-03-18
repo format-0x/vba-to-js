@@ -155,6 +155,8 @@ export default class Lexer {
       tag = 'WHILE';
     } else if (id === 'Until') {
       tag = 'UNTIL';
+    } else if (id === 'ParamArray') {
+      tag = TokenType.ParamArray;
     } else if (id === 'Wend') {
       tag = 'WEND';
     } else if (id === 'Function') {

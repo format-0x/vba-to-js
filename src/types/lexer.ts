@@ -34,4 +34,5 @@ export enum TokenType {
   CallStart = 'CALL_START',
   CallEnd = 'CALL_END',
   Property = 'PROPERTY',
+  ParamArray = 'PARAM_ARRAY',
 }

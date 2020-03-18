@@ -5,7 +5,7 @@ import {
   Block, Break, Call, Code, CodeFragment, For,
   IdentifierLiteral, If, Literal, NamedArgument,
   NumberLiteral,
-  Op, Parameter, Parens, PropertyName, Return,
+  Op, ParamArray, Parameter, Parens, PropertyName, Return,
   Root,
   StringLiteral, Switch, SwitchCase, ThisLiteral, Type, UndefinedLiteral,
   Value,
@@ -118,6 +118,18 @@ const grammar: Grammar = {
     dispatch('( ParamList )', function () {
       return $2;
     }),
+    dispatch('( ParamList , ParamArray )', function () {
+      return [...$2, $4];
+    }),
+    dispatch('( ParamArray )', function () {
+      return [$2];
+    }),
+    dispatch('( PARAM_MODIFIER ParamArray )', function () {
+      return [$3.setModifier($2)];
+    }),
+    dispatch('( ParamList , PARAM_MODIFIER ParamArray )', function () {
+      return [...$2, $5.setModifier($4)];
+    }),
   ],
   ParamList: [
     dispatch('', function () {
@@ -132,10 +144,18 @@ const grammar: Grammar = {
   ],
   Param: [
     dispatch('ParamVariable', function () {
-      return new Parameter($1);
+      return $1;
     }),
     dispatch('PARAM_MODIFIER ParamVariable', function () {
-      return new Parameter($2).setModifier($1);
+      return $2.setModifier($1);
+    }),
+  ],
+  ParamArray: [
+    dispatch('PARAM_ARRAY Identifier ( )', function () {
+      return new ParamArray($2);
+    }),
+    dispatch('PARAM_ARRAY Identifier ( ) Type', function () {
+      return new ParamArray($2, $5);
     }),
   ],
   ParamVariable: [
@@ -156,6 +176,9 @@ const grammar: Grammar = {
     dispatch('Value Accessor', function () {
       return $1.add($2);
     }),
+    dispatch('ParenthesizedInvocation', function () {
+      return new Value($1);
+    }),
   ],
   Break: [
     dispatch('BREAK', function () {
@@ -163,9 +186,6 @@ const grammar: Grammar = {
     }),
   ],
   Return: [
-    dispatch('RETURN Expression', function () {
-      return new Return($2);
-    }),
     dispatch('RETURN', function () {
       return new Return();
     }),
@@ -200,9 +220,6 @@ const grammar: Grammar = {
     dispatch('Assignable'),
     dispatch('This'),
     dispatch('Literal', function () {
-      return new Value($1);
-    }),
-    dispatch('ParenthesizedInvocation', function () {
       return new Value($1);
     }),
   ],

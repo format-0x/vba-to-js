@@ -181,21 +181,8 @@ export class Call extends Base {
 Base.prototype.children = ['variable', 'args'];
 
 export class Return extends Base {
-  constructor(private expression?: Value) {
-    super();
-  }
-
   compileNode(options: Options): CodeFragment[] {
-    const ret = [this.makeCode('return')];
-
-    if (this.expression) {
-      const expr = this.expression.compileToFragments(options);
-      ret.push(this.makeCode(' '), ...expr);
-    }
-
-    ret.push(this.makeCode(';'));
-
-    return ret;
+    return [this.makeCode('return ret;')];
   }
 }
 
@@ -292,11 +279,10 @@ export class Block extends Base {
       }
     }
 
-    if (!compiledNodes.length) {
-      return new Return().compileToFragments(options);
-    }
-
-    return this.joinFragments(compiledNodes, '\n');
+    return this.joinFragments(
+      compiledNodes,
+      '\n',
+    );
   }
 }
 
@@ -529,6 +515,12 @@ export class Parameter extends VariableDeclaration {
   }
 }
 
+export class ParamArray extends Parameter {
+  compileNode(options: Options): CodeFragment[] {
+    return [this.makeCode('...'), ...this.name.compileToFragments(options)];
+  }
+}
+
 export class Code extends Base {
   private modifier: Modifier = Modifier.Public;
 
@@ -561,10 +553,15 @@ export class Code extends Base {
       'Function',
     );
     options.scope = this.makeScope(options.scope);
+    options.scope.add(
+      'ret',
+      'Variant',
+    );
 
     const name = this.name.compileToFragments(options);
     const output: CodeFragment[] = [this.makeCode('function '), ...name, this.makeCode('(')];
 
+    this.body.push(new Return());
     this.params.forEach((param, i) => {
       param.declare(options);
 
@@ -651,7 +648,7 @@ export class Assign extends Base {
     const { kind } = scope.find(name) || {};
 
     if (kind === 'Function') {
-      return new Return(this.value).compileToFragments(options);
+      return [this.makeCode('ret'), this.makeCode('='), ...val];
     } else {
       return [...identifier, this.makeCode('='), ...val];
     }
