@@ -1,6 +1,6 @@
 import { LexerOptions, Pos, ShorthandTypes, Token, TokenLocation, TokenOptions, TokenType, TYPES } from './types';
 import {
-  COMPARE,
+  COMPARE, CONST, DIM,
   FUNCTION_MODIFIER,
   IDENTIFIER,
   LOGICAL,
@@ -9,7 +9,7 @@ import {
   NEWLINE,
   NUMBER,
   OPERATOR, PARAM_MODIFIER,
-  STRING,
+  STRING, UNARY,
   WHITESPACE
 } from './patterns';
 import { clean } from './util';
@@ -95,6 +95,8 @@ export default class Lexer {
       }
     } else if (prev === TokenType.New) {
       tag = TokenType.Type;
+    } else if (UNARY.test(id)) {
+      tag = TokenType.Unary;
     } else if (LOGICAL.includes(id)) {
       tag = 'LOGICAL';
     } else if (prev === 'END' && id === 'Sub') {
@@ -203,6 +205,10 @@ export default class Lexer {
       tag = TokenType.FunctionModifier;
     } else if ((match = MODIFIER.exec(this.chunk))) {
       tag = TokenType.Modifier;
+    } else if ((match = DIM.exec(this.chunk))) {
+      tag = TokenType.Dim;
+    } else if ((match = CONST.exec(this.chunk))) {
+      tag = TokenType.Const;
     } else if ((match = PARAM_MODIFIER.exec(this.chunk))) {
       tag = TokenType.ParamModifier;
     } else {

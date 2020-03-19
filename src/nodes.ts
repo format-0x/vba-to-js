@@ -12,6 +12,7 @@ import {
   Modifier,
   OptionsWithScope, ParamModifier,
 } from './types';
+import { LOGICAL } from './patterns';
 
 export class Scope {
   private _variables: VariableParams[] = [];
@@ -297,9 +298,27 @@ export class Op extends Base {
     super();
   }
 
+  get operatorMap(): { [key: string]: string } {
+    return {
+      or: '|',
+      xor: '^',
+      and: '&',
+      not: '~',
+    };
+  }
+
   compileNode(options: Options): CodeFragment[] {
+    let operator = this.makeCode(this.operator);
     const lhs = this.leftHandSide.compileToFragments(options);
-    const result: CodeFragment[][] = [lhs, [this.makeCode(this.operator)]];
+    const re = new RegExp(`^(?:${LOGICAL.join('|')})$`, 'i');
+
+    if (/^(?:<>|><)$/.test(this.operator)) {
+      operator = this.makeCode('!==');
+    } else if (re.test(this.operator)) {
+      operator = this.makeCode(this.operatorMap[this.operator.toLowerCase()]);
+    }
+
+    const result: CodeFragment[][] = [lhs, [operator]];
 
     if (this.rightHandSide) {
       result.push(this.rightHandSide.compileToFragments(options));
@@ -640,8 +659,8 @@ export class Assign extends Base {
     const { scope } = options;
     const name = this.variable.base.value;
     const declared = scope.check(name);
-
-    if (!this.variable.props.length && !declared) {
+    // TODO: add proper implementation
+    if (!this.variable.props.length && !declared && !(<Base>this.variable.base instanceof Call)) {
       scope.add(name);
     }
 

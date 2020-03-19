@@ -9,7 +9,6 @@ export enum BlockType {
 export interface ValueParams {}
 
 export enum Modifier {
-  Dim = 'DIM',
   Static = 'STATIC',
   Private = 'PRIVATE',
   Public = 'PUBLIC',

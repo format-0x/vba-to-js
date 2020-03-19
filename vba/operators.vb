@@ -9,5 +9,5 @@ C = A Mod B \ A ^ C
 D = C <> B > A <= A >= B < C
 
 ' logical
-D = A Imp B Eqv C
 D = A And B Or C Xor D
+D = Not A And Not B

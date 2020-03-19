@@ -1,15 +1,35 @@
-import { Alternative, Grammar, Options } from './types';
+import { Alternative, Grammar, Modifier, Options } from './types';
 import {
   Access,
   Assign,
-  Block, Break, Call, Code, CodeFragment, For,
-  IdentifierLiteral, If, Literal, NamedArgument,
+  Block,
+  Break,
+  Call,
+  Code,
+  For,
+  IdentifierLiteral,
+  If,
+  Literal,
+  NamedArgument,
   NumberLiteral,
-  Op, ParamArray, Parameter, Parens, PropertyName, Return,
+  Op,
+  ParamArray,
+  Parameter,
+  Parens,
+  PropertyName,
+  Return,
   Root,
-  StringLiteral, Switch, SwitchCase, ThisLiteral, Type, UndefinedLiteral,
+  StringLiteral,
+  Switch,
+  SwitchCase,
+  ThisLiteral,
+  Type,
+  UndefinedLiteral,
   Value,
-  VariableDeclaration, VariableDeclarationList, While, With
+  VariableDeclaration,
+  VariableDeclarationList,
+  While,
+  With
 } from './nodes';
 
 declare const $1: any;
@@ -61,6 +81,7 @@ const grammar: Grammar = {
   Line: [dispatch('Expression'), dispatch('Statement')],
   Statement: [
     dispatch('VariableDeclaration'),
+    dispatch('ConstDeclaration'),
     dispatch('Return'),
     dispatch('If'),
     dispatch('PostWhile'),
@@ -271,7 +292,7 @@ const grammar: Grammar = {
     dispatch('NamedArg'),
   ],
   NamedArg: [
-    dispatch('Identifier := Value', function () {
+    dispatch('Identifier := Expression', function () {
       return new NamedArgument($1, $3);
     }),
   ],
@@ -289,6 +310,17 @@ const grammar: Grammar = {
     dispatch('MODIFIER VariableList', function () {
       return new VariableDeclarationList($2, $1);
     }),
+    dispatch('DIM VariableList', function () {
+      return new VariableDeclarationList($2, $1);
+    }),
+  ],
+  ConstDeclaration: [
+    dispatch('CONST ConstList', function () {
+      return new VariableDeclarationList($2, <Modifier.Private>'Private');
+    }),
+    dispatch('MODIFIER CONST ConstList', function () {
+      return new VariableDeclarationList($3, $1);
+    }),
   ],
   VariableList: [
     dispatch('Variable', function () {
@@ -296,6 +328,22 @@ const grammar: Grammar = {
     }),
     dispatch('VariableList , Variable', function () {
       return [...$1, $3];
+    }),
+  ],
+  ConstList: [
+    dispatch('Const', function () {
+      return [$1];
+    }),
+    dispatch('ConstList , Const', function () {
+      return [...$1, $3];
+    }),
+  ],
+  Const: [
+    dispatch('Identifier = Value', function () {
+      return new VariableDeclaration($1, new Type('Variant'), $3);
+    }),
+    dispatch('Identifier Type = Value', function () {
+      return new VariableDeclaration($1, $2, $4);
     }),
   ],
   Variable: [
@@ -476,13 +524,16 @@ const grammar: Grammar = {
       return new Op('/', $1, $3);
     }),
     dispatch('Expression ^ Expression', function () {
-      return new Op('^', $1, $3);
+      return new Op('**', $1, $3);
     }),
     dispatch('Expression COMPARE Expression', function () {
       return new Op($2, $1, $3);
     }),
     dispatch('Expression LOGICAL Expression', function () {
       return new Op($2, $1, $3);
+    }),
+    dispatch('UNARY Expression', function () {
+      return new Op($1, $2);
     }),
   ],
 };

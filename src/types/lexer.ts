@@ -35,4 +35,7 @@ export enum TokenType {
   CallEnd = 'CALL_END',
   Property = 'PROPERTY',
   ParamArray = 'PARAM_ARRAY',
+  Const = 'CONST',
+  Dim = 'DIM',
+  Unary = 'UNARY',
 }
