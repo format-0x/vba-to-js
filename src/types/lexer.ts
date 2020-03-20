@@ -38,4 +38,6 @@ export enum TokenType {
   Const = 'CONST',
   Dim = 'DIM',
   Unary = 'UNARY',
+  Nothing = 'NOTHING',
+  Boolean = 'BOOLEAN',
 }

@@ -8,6 +8,11 @@ export enum BlockType {
 
 export interface ValueParams {}
 
+export interface AssignParams {
+  context: 'object' | 'value';
+  assignType?: 'let' | 'set';
+}
+
 export enum Modifier {
   Static = 'STATIC',
   Private = 'PRIVATE',

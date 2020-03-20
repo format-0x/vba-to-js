@@ -10,7 +10,7 @@ import {
   VariablePosition,
   VariableType,
   Modifier,
-  OptionsWithScope, ParamModifier,
+  OptionsWithScope, ParamModifier, AssignParams,
 } from './types';
 import { LOGICAL } from './patterns';
 
@@ -603,7 +603,11 @@ export class Code extends Base {
 
 Code.prototype.children = ['params', 'body'];
 
-export class BooleanLiteral extends Literal {}
+export class BooleanLiteral extends Literal {
+  constructor(value: string) {
+    super(value.toLowerCase());
+  }
+}
 
 export class UndefinedLiteral extends Literal {
   constructor() {
@@ -643,7 +647,9 @@ export class Assign extends Base {
   constructor(
     public variable: Value,
     public value: Value,
-    public context: string = 'value',
+    public params: AssignParams = {
+      context: 'value',
+    },
   ) {
     super();
   }
@@ -652,7 +658,7 @@ export class Assign extends Base {
     const identifier = this.variable.compileToFragments(options);
     const val = this.value.compileToFragments(options);
 
-    if (this.context === 'object') {
+    if (this.params.context === 'object') {
       return [...identifier, this.makeCode(':'), ...val];
     }
 
@@ -847,6 +853,6 @@ export class NamedArgument extends Assign {
     variable: Value,
     value: Value,
   ) {
-    super(variable, value, 'object');
+    super(variable, value, { context: 'object' });
   }
 }

@@ -2,7 +2,7 @@ import { Alternative, Grammar, Modifier, Options } from './types';
 import {
   Access,
   Assign,
-  Block,
+  Block, BooleanLiteral,
   Break,
   Call,
   Code,
@@ -129,10 +129,25 @@ const grammar: Grammar = {
     dispatch('ARG_SKIP', function () {
       return new UndefinedLiteral();
     }),
+    dispatch('NOTHING', function () {
+      return new UndefinedLiteral();
+    }),
+    dispatch('BOOLEAN', function () {
+      return new BooleanLiteral($1);
+    }),
   ],
   Assign: [
     dispatch('Assignable = Expression', function () {
       return new Assign($1, $3);
+    }),
+    dispatch('SET Assignable = Expression', function () {
+      return new Assign($2, $4, { assignType: 'set', context: 'value' });
+    }),
+    dispatch('SET Assignable = NEW Expression', function () {
+      return new Assign($2, $5, { assignType: 'set', context: 'value' });
+    }),
+    dispatch('LET Assignable = Expression', function () {
+      return new Assign($2, $4, { assignType: 'let', context: 'value' });
     }),
   ],
   Params: [

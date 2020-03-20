@@ -2,7 +2,7 @@
 Dim L%, M&, N#, O$, P!, Q@
 
 ' const
-Const X As Integer = 100, W = "Test"
+Const X As Integer = 100, W = True
 
 ' types and modifiers
 Private A As Integer, B As Long, C As Double, D As String * 30, E As Single, F As Currency
