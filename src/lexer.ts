@@ -67,7 +67,7 @@ export default class Lexer {
     const id = identifier.toLowerCase();
 
     if (shorthand) {
-      this.tokens.push(this.makeToken(TokenType.Identifier, id));
+      this.tokens.push(this.makeToken(TokenType.Identifier, identifier));
 
       if (shorthand === ':=') {
         this.tokens.push(this.makeToken(':=', ':='));

@@ -1,5 +1,5 @@
 import { promises } from 'fs';
-import beautifier from 'js-beautify';
+import prettier from 'prettier';
 import Lexer from './lexer';
 import bnf from './grammar';
 import * as nodes from './nodes';
@@ -72,6 +72,6 @@ const compile = async (path: string, options: Options = {}) => {
   return fragmentsToString(fragments);
 };
 
-compile('vba/conditional.vb')
-  .then(beautifier.js.bind(beautifier))
+compile('vba/properties.vb')
+  .then(prettier.format.bind(prettier))
   .then(console.log);
