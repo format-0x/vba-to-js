@@ -1,5 +1,3 @@
-import { promises } from 'fs';
-import prettier from 'prettier';
 import Lexer from './lexer';
 import bnf from './grammar';
 import * as nodes from './nodes';
@@ -49,12 +47,10 @@ parser.lexer = {
   },
 };
 
-const lexer = new Lexer();
-
-const compile = async (path: string, options: Options = {}) => {
-  const code = await promises.readFile(path, 'utf8');
+const compile = (code: string, options: Options = {}) => {
   options = { ...options };
 
+  const lexer = new Lexer();
   const tokens: Token[] = lexer.tokenize(code, options);
   const referencedVariables = tokens.reduce((acc: string[], [tag, value]) => {
     if (tag === 'IDENTIFIER') {
@@ -72,6 +68,4 @@ const compile = async (path: string, options: Options = {}) => {
   return fragmentsToString(fragments);
 };
 
-compile('vba/properties.vb')
-  .then(prettier.format.bind(prettier))
-  .then(console.log);
+export default compile;
