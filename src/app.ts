@@ -3,7 +3,6 @@ import createError, { HttpError } from 'http-errors';
 import logger from 'morgan';
 import path from 'path';
 import http from 'http';
-import { promises } from 'fs';
 import prettier from 'prettier';
 import compile from './compiler';
 import io from 'socket.io';
@@ -17,8 +16,6 @@ const sock = io(server);
 
 sock.on('connection', (socket) => {
   console.log('socket connection established');
-  promises.readFile(path.join(__dirname, 'public/code'), { encoding: 'utf8' })
-    .then(compile).then(socket.emit.bind(socket, 'message')).catch(console.error);
 
   socket.on('compile', (code: string) => {
     try {
