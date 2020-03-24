@@ -1,5 +1,5 @@
 import { RequestHandler } from 'express';
-import {MetadataKeys} from '../../types';
+import { MetadataKeys } from '../../types';
 
 export const useMiddleware = (middleware: RequestHandler): MethodDecorator => {
   return (target, key, desc) => {
