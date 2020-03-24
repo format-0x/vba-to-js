@@ -14,17 +14,19 @@ const app = express();
 const server = http.createServer(app);
 const socket = io(server);
 
-socket.on('connection', () => console.log('socket connection established'));
-socket.on('disconnect', () => console.log('disconnected'));
-socket.on('compile', (code: string) => {
-  try {
-    const compiled = compile(code);
+socket.on('connection', (socket) => {
+  console.log('socket connection established');
 
-    socket.emit('message', prettier.format(compiled));
-  } catch (error) {
-    socket.emit('compileError', error.message);
-  }
+  socket.on('compile', (code: string) => {
+    try {
+      const compiled = compile(code);
+      socket.emit('message', prettier.format(compiled));
+    } catch (error) {
+      socket.emit('compileError', error.message);
+    }
+  });
 });
+socket.on('disconnect', () => console.log('disconnected'));
 
 app.use(logger('dev'));
 app.use(express.json());
