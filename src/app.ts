@@ -3,6 +3,7 @@ import createError, { HttpError } from 'http-errors';
 import logger from 'morgan';
 import path from 'path';
 import http from 'http';
+import { promises } from 'fs';
 import prettier from 'prettier';
 import compile from './compiler';
 import io from 'socket.io';
@@ -12,10 +13,12 @@ import './controllers';
 
 const app = express();
 const server = http.createServer(app);
-const socket = io(server);
+const sock = io(server);
 
-socket.on('connection', (socket) => {
+sock.on('connection', (socket) => {
   console.log('socket connection established');
+  promises.readFile(path.join(__dirname, 'public/code'), { encoding: 'utf8' })
+    .then(compile).then(socket.emit.bind(socket, 'message')).catch(console.error);
 
   socket.on('compile', (code: string) => {
     try {
@@ -26,7 +29,7 @@ socket.on('connection', (socket) => {
     }
   });
 });
-socket.on('disconnect', () => console.log('disconnected'));
+sock.on('disconnect', () => console.log('disconnected'));
 
 app.use(logger('dev'));
 app.use(express.json());
