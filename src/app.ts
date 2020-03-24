@@ -15,8 +15,15 @@ const server = http.createServer(app);
 const socket = io(server);
 
 socket.on('connection', () => console.log('socket connection established'));
+socket.on('disconnect', () => console.log('disconnected'));
 socket.on('compile', (code: string) => {
-  socket.emit('message', prettier.format(compile(code)));
+  try {
+    const compiled = compile(code);
+
+    socket.emit('message', prettier.format(compiled));
+  } catch (error) {
+    socket.emit('compileError', error.message);
+  }
 });
 
 app.use(logger('dev'));
