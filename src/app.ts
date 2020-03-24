@@ -20,7 +20,7 @@ socket.on('connection', (socket) => {
   socket.on('compile', (code: string) => {
     try {
       const compiled = compile(code);
-      socket.emit('message', prettier.format(compiled));
+      socket.emit('message', prettier.format(compiled, { parser: 'babel' }));
     } catch (error) {
       socket.emit('compileError', error.message);
     }
