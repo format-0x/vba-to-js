@@ -54,6 +54,6 @@ app.use((err: HttpError, req: Request, res: Response, next: NextFunction) => {
   res.sendStatus(err.status || 500);
 });
 
-server.listen(3000, () => console.log('server connection established'));
+server.listen(5000, () => console.log('server connection established'));
 
 export default server;

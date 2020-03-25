@@ -1,0 +1,14 @@
+version: '3'
+services:
+  frontend:
+    build: ../repl
+    ports:
+    - "8000:8000"
+  backend:
+    build: .
+    ports:
+    - "5000:5000"
+  proxy:
+    image: "proxy:latest"
+    ports:
+    - "80:80"
