@@ -3,6 +3,7 @@ import createError, { HttpError } from 'http-errors';
 import logger from 'morgan';
 import path from 'path';
 import http from 'http';
+import { promises } from 'fs';
 import prettier from 'prettier';
 import compile from './compiler';
 import io from 'socket.io';
@@ -24,6 +25,12 @@ sock.on('connection', (socket) => {
     } catch (error) {
       socket.emit('compileError', error.message);
     }
+  });
+
+  socket.on('preload', () => {
+    promises.readFile(path.join(__dirname, 'code.vb'), { encoding: 'utf8' })
+      .then(socket.emit.bind(socket, 'code'))
+      .catch(console.error);
   });
 });
 sock.on('disconnect', () => console.log('disconnected'));
