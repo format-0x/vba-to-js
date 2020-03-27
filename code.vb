@@ -106,6 +106,8 @@ With Object
   End With
 End With
 
+B = C = (A + B)
+
 ' math
 C = (A + B) * B - A / C
 C = A Mod B \ A ^ C

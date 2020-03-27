@@ -436,9 +436,9 @@ export class VariableDeclaration extends Base {
     let value: string | undefined;
 
     if (this.initializer) {
-      const [init] = this.initializer.compileToFragments(options);
+      const init = this.initializer.compileToFragments(options);
 
-      value = init.toString();
+      value = fragmentsToString(init);
     }
 
     scope.add(this.name.value, this.variableType.type, value);

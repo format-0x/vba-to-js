@@ -354,10 +354,10 @@ const grammar: Grammar = {
     }),
   ],
   Const: [
-    dispatch('Identifier = Value', function () {
+    dispatch('Identifier = Expression', function () {
       return new VariableDeclaration($1, new Type('Variant'), $3);
     }),
-    dispatch('Identifier Type = Value', function () {
+    dispatch('Identifier Type = Expression', function () {
       return new VariableDeclaration($1, $2, $4);
     }),
   ],
